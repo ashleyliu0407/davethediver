@@ -1,0 +1,28 @@
+// OxygenBox.js - defines the OxygenBox class which provides oxygen to the player
+
+class OxygenBox extends Box {
+    constructor(x,y,amount,img) {
+        super(x,y,img); // call the parent class constructor
+        this.oxygenAmount = amount; // amount of oxygen this box provides
+    }
+
+    display() {
+        if(!this.isCollected) {
+            // use parent display method
+            super.display();
+
+            // add special oxygen box indicator
+            fill(255);
+            textAlign(CENTER, CENTER);
+            textSize(10);
+            text("O₂", this.position.x, this.position.y);
+        }
+    }
+
+    collect(player) {
+        super.collect(player); // call parent collect method
+
+        player.currentOxygen += this.oxygenAmount;
+        player.currentOxygen = constrain(player.currentOxygen, 0, player.maxOxygen);
+    }
+}
