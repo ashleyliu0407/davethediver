@@ -10,8 +10,10 @@ const GRAVITY = 0.1;
 // a constant for the drag force coeffiecient (higher means thicker water)
 const DRAG_COEFFICIENT = 0.5;
 // a constant for the buoyancy force
-const BUOYANCY = -0.0999;
+const BUOYANCY = -0.109;
 
+// a constant for stopping threshold, check if the velocity is very small
+const STOPPING_THRESHOLD = 0.1;
 
 class Player {
     constructor(x,y) {
@@ -25,8 +27,23 @@ class Player {
         this.baseMass = 20
         this.totalMass = this.baseMass + this.bagWeight;
 
+        // Oxygen properties
+        this.maxOxygen = 60;
+        this.currentOxygen = this.maxOxygen;
+
+        this.oxygenRateIdle = 0.5;
+        this.oxygenRateSwim = 1.0;
+        this.oxygenRateSprint = 1.5;
+        this.oxygenRateAim = 1.25; // implement later
+
+        // some state properties
+        this.isThrusting = false; // is W/A/S/D being pressed
+        this.isSprinting = false; // is shift being pressed
+        this.isAiming = false; // implement later
+
         // control and appearance properties
-        this.thrustForce = 1.5; // base move speed
+        this.thrustForce = 2.5; // base move speed
+        this.sprintMultiplier = 1.5; // sprint speed multiplier
         this.radius = 20; // right now use circle, maybe delete this in future
 
     }
@@ -41,6 +58,33 @@ class Player {
 
     // this is the main function to update the player's physics
     update() {
+
+        // --------- OXYGEN LOGIC ---------
+
+        // Oxygen consumption
+        let dt = deltaTime / 1000; // convert milliseconds to seconds
+
+        if (this.isSprinting && this.isThrusting) {
+            // springting consumes 1.5/s
+            this.currentOxygen -= this.oxygenRateSprint * dt;
+        } else if (this.isThrusting) {
+            // swimming consumes 1.0/s
+            this.currentOxygen -= this.oxygenRateSwim * dt;
+        } else if (this.isAiming) {
+            // for future implementation
+            this.currentOxygen -= this.oxygenRateAim * dt;
+        }
+        else {
+            // idle(not moving) consumes 0.5/s
+            this.currentOxygen -= this.oxygenRateIdle * dt;
+        }
+
+        // constrain the oxygen level between 0 and maxOxygen
+        this.currentOxygen = constrain(this.currentOxygen, 0, this.maxOxygen);
+
+
+        // --------- PHYSICS LOGIC ---------
+
         // update the mass
         this.totalMass = this.baseMass + this.bagWeight;
 
@@ -72,58 +116,74 @@ class Player {
         this.position.add(this.velocity); // position changes by velocity
         this.acceleration.mult(0); // change the acceleration back to 0
 
-        // finish
+        // if the player is not thrusting and velocity is very small, stop completely
+        if (!this.isThrusting && this.velocity.mag() < STOPPING_THRESHOLD) {
+            this.velocity.mult(0);
+        }
+
+        // move camera
+        cameraOffset = this.position.x;
     }
 
     // move by player
     handleInput() {
         let thrust = createVector(0,0);
+
+        // reset states
+        this.isThrusting = false;
+        this.isSprinting = false;
+        //this.isAiming = false;
+
+        if (keyIsDown(16)) { // "shift"
+            this.isSprinting = true;
+        }
+
         if (keyIsDown(65)) { // "a"
-            thrust.x = -this.thrustForce;
+            thrust.x = -1; // direction only
+            this.isThrusting = true;
         }
         if (keyIsDown(68)) { // "d"
-            thrust.x = this.thrustForce;
+            thrust.x = 1;
+            this.isThrusting = true;
         }
         if (keyIsDown(87)) { // "w"
-            thrust.y = -this.thrustForce;
+            thrust.y = -1;
+            this.isThrusting = true;
         }
         if (keyIsDown(83)) { // "s"
-            thrust.y = this.thrustForce;
+            thrust.y = 1;
+            this.isThrusting = true;
         }
+
+        let currentThrust = this.thrustForce;
+        if (this.isSprinting && this.isThrusting) {
+            currentThrust *= this.sprintMultiplier;
+        }
+
+        thrust.normalize(); // make the length be 1, ensure diagonal movement is not faster
+        thrust.mult(currentThrust);
 
         this.applyForce(thrust);
     }
 
     // draw the player
     display() {
-        stroke(0);
-        fill(175);
+        // need to change(right now just a ball)
+        noStroke();
+        fill(255, 230, 0);
         ellipse(this.position.x, this.position.y, this.radius * 2, this.radius * 2);
 
         // this is for debug
+        stroke(20);
         let v = this.velocity.copy();
         v.mult(10);
         line(this.position.x, this.position.y, this.position.x+ v.x, this.position.y + v.y);
+        noStroke();
     }
 
-    // collision with the edge of canvas (need to change in future)
+    // collision with the edge of canvas(need to change: maybe need to add more)
     checkEdges() {
-        if (this.position.x > width - this.radius) {
-            this.position.x = width - this.radius;
-            this.velocity.x *= -0.1;
-        }
-        else if (this.position.x < this.radius) {
-            this.position.x = this.radius;
-            this.velocity.x *= -0.1;
-        }
-
-        if (this.position.y > height - this.radius) {
-            this.position.y = height - this.radius;
-            this.velocity.y *= -0.1;
-        }
-        else if (this.position.y < this.radius) {
-            this.position.y = this.radius;
-            this.velocity.y *= -0.1;
-        }
+        this.position.x = constrain(this.position.x, -4000, 3000);
+        this.position.y = constrain(this.position.y, 0, maxDepth);
     }
 }

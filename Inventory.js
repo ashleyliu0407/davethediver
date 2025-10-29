@@ -79,7 +79,9 @@ class Inventory {
             const rows = Math.ceil(this.totalSlots / cols); // how many rows needed
             const slotSize = 52; // size of each slot
             const spacing = 10; // space between slots
-            let startX = winX + 28 + slotSize/2;
+
+            //SLOTS 
+            let startX = winX + 160 + slotSize/2;
             let startY = winY + winH/2 - (rows * (slotSize + spacing) - spacing) / 2 + slotSize/2;
 
             for (let i=0; i<this.totalSlots; i++) {
@@ -187,8 +189,8 @@ class Inventory {
         noStroke();
         fill(0);
         textAlign(CENTER, CENTER);
-        textSize(22);
-        text("Acquired", winX + winW/2, winY + 25);
+        textSize(40);
+        text("Dave's Inventory", winX + winW/2, winY + 50);
 
         // "X" button to close
         rectMode(CENTER);
@@ -206,7 +208,7 @@ class Inventory {
         const rows = Math.ceil(this.totalSlots / cols); // how many rows needed
         const slotSize = 52; // size of each slot
         const spacing = 10; // space between slots
-        let startX = winX + 28 + slotSize/2;
+        let startX = winX + 160 + slotSize/2;
         let startY = winY + winH/2 - (rows * (slotSize + spacing) - spacing) / 2 + slotSize/2;
 
         for (let i=0; i<this.totalSlots; i++) {
@@ -257,7 +259,7 @@ class Inventory {
 
         // bottom area - fish details and discard button
         if (this.selectedIndex !== null && this.items[this.selectedIndex]) {
-            let fishName = this.items[this.selectedIndex].species;
+            let fishName = this.items[this.selectedIndex].type;
             let textY = winY + winH - 40;
             fill(0);
             textAlign(LEFT, CENTER);

@@ -1,20 +1,24 @@
+// ===============================
+// FISH CLASS
+// ===============================
 class Fish {
+    // Added gridR and gridC to track persistent fish
+    // They default to -1 for ambient (non-grid) fish
+    constructor(type, x, y, dir, speed, size, imgLeft, imgRight, gridR = -1, gridC = -1) {
+        this.type = type;
+        this.x = x;
+        this.y = y;
+        this.dir = dir;
+        this.speed = speed;
+        this.phase = random(1000);
 
-    constructor(x,y,species,speed,size,imgLeft,imgRight) {
-        this.position = createVector(x,y);
-        this.species = species;
-        this.speed = speed; // pixels per frame
-        this.size = size; // diameter
-        this.imgLeft = imgLeft;
-        this.imgRight = imgRight;
+        // === NEW PROPERTIES START ===
+        this.size = size; // From fishConfig
+        this.imgLeft = imgLeft; // From fishImages
+        this.imgRight = imgRight; // From fishImages
 
-        // random initial direction
-        this.velocity = p5.Vector.random2D();
-        // set the velocity magnitude to speed
-        this.velocity.setMag(this.speed);
-
-        // set a color based on species if no image
-        switch(this.species) {
+        // Add fallback color based on species if no image
+        switch(this.type) {
             case "Mackerel": this.fallbackColor = color(180, 180, 190); break;
             case "Sardine": this.fallbackColor = color(200, 200, 255); break;
             case "Salmon": this.fallbackColor = color(255, 150, 130); break;
@@ -25,39 +29,67 @@ class Fish {
             case "Sea Urchin": this.fallbackColor = color(50, 0, 50); break;
             default: this.fallbackColor = color(255, 0, 0);
         }
+
+        // new things
+        this.gridR = gridR; // The grid row this fish belongs to
+        this.gridC = gridC; // The grid column
+        // If gridR is -1, it's an ambient fish, not a persistent one
+        this.isAmbient = (this.gridR === -1);
     }
 
-    move() {
-        // only move if speed > 0
-        if (this.speed > 0) {
-            // Random turns, more realistic.
-            if (random(1) < 0.05) {
-                this.velocity.rotate(radians(random(-15, 15)));
-            }
+    update() {
+        // Stop Sea Urchins from moving
+        if (this.type === "Sea Urchin") {
+            this.speed = 0;
+            return;
+        }
+        this.x += this.speed * this.dir;
+        
+        // Stop Scallop from swaying
+        if (this.type === "Scallop") {
+            return;
+        }
+        this.y += sin(frameCount * 0.09 + this.phase) * 0.4;
+    }
 
-            // avoid change the speed(if rotating)
-            this.velocity.setMag(this.speed);
-            // update position
-            this.position.add(this.velocity);
-            // check for screen edges (need to change future)
-            this.checkEdges();
+    isOffScreen(cameraOffset) {
+        // Increased buffer to 200 to prevent pop-in
+        let viewportLeft = cameraOffset - width / 2 - 200;
+        let viewportRight = cameraOffset + width / 2 + 200;
+        return this.x < viewportLeft || this.x > viewportRight;
+    }
+
+    closeTo() {
+        // Scallops and Urchins don't flee
+        if (this.type === "Scallop" || this.type === "Sea Urchin") {
+            return; 
+        }
+
+        let d = dist(this.x, this.y, player.position.x, player.position.y);
+        if (d < 100 && !this.escaping) {
+            this.escaping = true;
+            this.dir *= -1;
+            this.escapeTimer = 30;
+        }
+
+        // Slightly smoother and slower reaction
+        if (this.escaping) {
+            this.speed = lerp(this.speed, 2.8, 0.08);
+            this.escapeTimer--;
+            if (this.escapeTimer <= 0) this.escaping = false;
+        } else {
+            // Lerp back to original speed from config
+            let originalSpeed = fishConfig[this.type].speed;
+            this.speed = lerp(this.speed, originalSpeed, 0.05);
         }
     }
 
-    // wrapping
-    checkEdges() {
-        let buffer = this.size * 2; // don't appear directly.
-        if (this.position.x < -buffer) this.position.x = width + buffer;
-        if (this.position.x > width + buffer) this.position.x = -buffer;
-        if (this.position.y < -buffer) this.position.y = height + buffer;
-        if (this.position.y > height + buffer) this.position.y = -buffer;
-    }
-
-    display() {
+    draw() {
         let currentImg;
 
-        // set image based on direction
-        if (this.velocity.x >=0) {
+        // Set image based on direction
+        // We use this.dir (1 or -1)
+        if (this.dir >= 0) {
             currentImg = this.imgRight; // facing right
         }
         else {
@@ -66,16 +98,15 @@ class Fish {
 
         imageMode(CENTER);
 
-        // draw the fish
+        // Draw the fish
         if (currentImg) {
-            image(currentImg, this.position.x, this.position.y, this.size, this.size);
+            image(currentImg, this.x, this.y, this.size, this.size);
         }
         else {
-            // if image is misssing, draw a circle with fallback color
+            // If image is missing, draw a circle with fallback color
             fill(this.fallbackColor);
             noStroke();
-            ellipse(this.position.x, this.position.y, this.size, this.size);
+            ellipse(this.x, this.y, this.size, this.size);
         }
-
     }
 }
