@@ -12,10 +12,10 @@ class OxygenBox extends Box {
             super.display();
 
             // add special oxygen box indicator
-            fill(255);
+            fill(0);
             textAlign(CENTER, CENTER);
             textSize(10);
-            text("O₂", this.position.x, this.position.y);
+            text("O₂", this.position.x+5, this.position.y+5);
         }
     }
 

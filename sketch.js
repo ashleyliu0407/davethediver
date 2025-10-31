@@ -20,15 +20,42 @@ let cameraOffset = 0;
 let inventory;
 let backpackIconImg;
 
+
+
 //for box:
 let activeBoxes = [];
 let boxImages = {};
+
+// for projectiles:
+let activeProjectiles = [];
+
+// Weapon settings
+const weaponConfig = {
+  "Harpoon": {
+    type: "DAMAGE_OVER_TIME",
+    damage: 1,
+    projectileSpeed: 7,
+    range: 300
+  },
+  "SpearGun": {
+    type: "DAMAGE",
+    damage: 5,
+    projectileSpeed: 10,
+    range: 400
+  },
+  "Netgun": {
+    type: "CATCH",
+    damage: 0,
+    projectileSpeed: 5,
+    range: 200
+  }
+}
 
 // fish definitions
 const fishPools = {
   shallow: ["Mackerel", "Sardine"],
   medium: ["Salmon", "Yellowtail", "Scallop", "Mackerel", "Sardine"],
-  deep: ["Bluefin Tuna", "Eel", "Sea Urchin"]
+  deep: ["Bluefin-Tuna", "Eel", "Sea-Urchin"]
 };
 const allSpecies = [...new Set([
   ...fishPools.shallow,
@@ -37,14 +64,26 @@ const allSpecies = [...new Set([
 ])];
 // easy for set
 const fishConfig = {
-  "Mackerel": {speed: 2.5, size: 30},
-  "Sardine": {speed: 2, size: 20},
-  "Salmon": {speed: 2.2, size: 40},
-  "Yellowtail": {speed: 1.8, size: 50},
-  "Scallop": {speed: 0.1, size: 25},
-  "Bluefin Tuna": {speed: 3, size: 70},
-  "Eel": {speed: 1.5, size: 60},
-  "Sea Urchin": {speed: 0, size: 30}
+  "Mackerel": {speed: 2.5, size: 80, health: 1},
+  "Sardine": {speed: 2, size: 50, health: 1},
+  "Salmon": {speed: 2.2, size: 60, health: 5},
+  "Yellowtail": {speed: 1.8, size: 80, health: 8},
+  "Scallop": {speed: 0.1, size: 40, health: 1},
+  "Bluefin-Tuna": {speed: 3, size: 150, health: 15},
+  "Eel": {speed: 1.5, size: 90, health: 10},
+  "Sea-Urchin": {speed: 0, size: 40, health: 1}
+};
+
+//some fish imgs need to be stretched 
+const fishStretch = {
+  "Mackerel": 1.0,
+  "Sardine": 1.0,
+  "Salmon": 1.7,
+  "Yellowtail": 1.25,
+  "Bluefin-Tuna": 1.4,
+  "Eel": 1.6,
+  "Scallop": 1.0,
+  "Sea-Urchin": 1.0
 };
 
 let fishImages = {};
@@ -65,92 +104,28 @@ const AMBIENT_FISH_TYPES = [...new Set([
 // ===============================
 function preload() {
   backpackIconImg = loadImage("images/BagUI.png");
-  boxImages.oxygen = loadImage("images/OxygenBox.png");
+  // boxImages.oxygen = loadImage("images/OxygenBox.png");
+  boxImages.oxygen = loadImage("images/oxyg.png");
 
   // add fish image loading logic(need to change)
   for (let species of allSpecies) {
-    // when we have the fish images, use it
-    // fishImages[species] = {
-    //     left: loadImage(pathL),
-    //     right: loadImage(pathR)
-    // };
-    let pathL = `images/fish/${species}_L.png`;
-    let pathR = `images/fish/${species}_R.png`;
-
-    fishImages[species] = {left: null, right: null};
-    loadImage(pathL,
-        img => fishImages[species].left = img,
-        err => {fishImages[species].left = null;}
-    );
-    loadImage(pathR,
-        img => fishImages[species].right = img,
-        err => {fishImages[species].right = null;}
-    );
+    fishImages[species] = { left: null, right: null }; 
+    let pathL = `images/fish/${species}_L.gif`;
+    let pathR = `images/fish/${species}_R.gif`;
+    loadImage(pathL, img => fishImages[species].left = img);
+    loadImage(pathR, img => fishImages[species].right = img);
   }
 }
 
-// // ===============================
-// // FISH CLASS
-// // ===============================
-// class Fish {
-//   constructor(type, x, y, dir, speed) {
-//     this.type = type;
-//     this.x = x;
-//     this.y = y;
-//     this.dir = dir;
-//     this.speed = speed;
-//     this.phase = random(1000);
-//     this.fallbackColor = color(random(150, 255), random(150, 255), random(150, 255));
-//   }
-
-//   update() {
-//     this.x += this.speed * this.dir;
-//     this.y += sin(frameCount * 0.09 + this.phase) * 0.4;
-//   }
-
-//   isOffScreen(cameraOffset) {
-//     let viewportLeft = cameraOffset - width / 2 - 100;
-//     let viewportRight = cameraOffset + width / 2 + 100;
-//     return this.x < viewportLeft || this.x > viewportRight;
-//   }
-
-//   closeTo() {
-//     let d = dist(this.x, this.y, player.position.x, player.position.y);
-//     if (d < 100 && !this.escaping) {
-//       this.escaping = true;
-//       this.dir *= -1;
-//       this.escapeTimer = 30;
-//     }
-
-//     // Slightly smoother and slower reaction
-//     if (this.escaping) {
-//       this.speed = lerp(this.speed, 2.8, 0.08);
-//       this.escapeTimer--;
-//       if (this.escapeTimer <= 0) this.escaping = false;
-//     } else {
-//       this.speed = lerp(this.speed, 2, 0.05);
-//     }
-//   }
-
-//   draw() {
-//     noStroke();
-//     push();
-//     translate(this.x, this.y);
-//     scale(this.dir, 1);
-
-//     fill(this.fallbackColor);
-//     ellipse(0, 0, 40, 15);
-
-//     pop();
-//   }
-// }
 
 // ===============================
 // SETUP + DRAW LOOP
 // ===============================
 function setup() {
-  createCanvas(1400, 800);
+  let canvas = createCanvas(1400, 800);
+  canvas.elt.oncontextmenu = (e) => e.preventDefault(); // disable right click menu
   createOceanGrid();
+
 
   //Font
   textFont('Quantico');
@@ -169,12 +144,17 @@ function draw() {
   
   drawOceanGradient();
 
+  
+
   player.handleInput();
   player.update();
   player.checkEdges();
 
-  activateGridFish(); // add new
+
+  activateGridFish(); // spawn grid fish
   updateActiveFish();
+
+  updateProjectiles(); // new function to update projectiles
 
   push();
   translate(-cameraOffset + width / 2, 0);
@@ -182,6 +162,8 @@ function draw() {
   translate(0, cameraY);
 
   drawActiveFish();
+
+  drawProjectiles(); // new function to draw projectiles
 
   // Draw oxygen boxes
   for (let i = activeBoxes.length - 1; i >= 0; i--) {
@@ -192,6 +174,8 @@ function draw() {
       activeBoxes.splice(i, 1);
     }
   }
+
+
 
   player.display();
   pop();
@@ -278,6 +262,7 @@ function spawnFish() {
     fishType, x, y, dir,
     config.speed,
     config.size,
+    config.health,
     images.left,
     images.right
   );
@@ -332,6 +317,7 @@ function activateGridFish() {
             fishType, x, y, dir,
             config.speed,
             config.size,
+            config.health,
             images.left,
             images.right,
             r, c // grid coordinates
@@ -352,7 +338,9 @@ function updateActiveFish() {
 
     // Easier collection radius (need to change after weapon)
     let d = dist(player.position.x, player.position.y, fish.x, fish.y);
-    if (d < player.radius + fish.size / 2) {
+
+    // Only collect if health is 0 (or less)
+    if (fish.health <= 0 && d < player.radius + fish.size / 2) {
       if (inventory.addItem(fish)) {
         // if it was not an ambient fish, permanently remove from grid
         if (!fish.isAmbient) {
@@ -392,6 +380,57 @@ function drawActiveFish() {
 }
 
 // ===============================
+// PROJECTILE MANAGEMENT
+// ===============================
+function updateProjectiles() {
+  for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+    let proj = activeProjectiles[i];
+    proj.update();
+
+    // harpoon specific logic
+    if (proj.type === "DAMAGE_OVER_TIME") {
+      // if harpoon is retracting, it can't hit anything
+      if (proj.state === "RETRACTING") {
+        if (!proj.isActive) {
+          player.harpoonOut = false; // allow firing again
+          activeProjectiles.splice(i, 1);
+        }
+        continue;
+      }
+
+      // if harpoon is firing, check for collision with fish
+      if (proj.state === "FIRING") {
+        for (let j = activeFish.length - 1; j >= 0; j--) {
+          let fish = activeFish[j];
+          if (fish.health <= 0) continue; // skip dead fish
+
+          let d = dist(proj.position.x, proj.position.y, fish.x, fish.y);
+          if (d < fish.size / 2) {
+            // hit!
+            proj.attach(fish);
+            break;
+          }
+        }
+      }
+    }
+
+    // will add SpearGun and Netgun logic later
+
+    // check if projectile is expired
+    if (!proj.isActive) {
+      activeProjectiles.splice(i, 1);
+    }
+  }
+}
+
+function drawProjectiles() {
+  for (let proj of activeProjectiles) {
+    proj.draw();
+  }
+}
+
+
+// ===============================
 // VISUALS
 // ===============================
 function drawOceanGradient() {
@@ -414,129 +453,28 @@ function drawDarknessOverlay() {
   rect(0, 0, width, height);
   pop();
   
-  // push();
-  // resetMatrix(); 
-  // rectMode(CORNER); 
-  // let alpha = map(player.position.y, 0, maxDepth, 0, 100);
-  // fill(0, 0, 100, alpha);
-  // noStroke();
-  // rect(0, 0, width, height);
-  // pop();
 }
 
 
 
-// // ===============================
-// // PLAYER SYSTEM
-// // ===============================
-// const GRAVITY = 0.05;
-// const DRAG_COEFFICIENT = 0.12;
-// const BUOYANCY = -0.04;
-// const STOPPING_THRESHOLD = 0.02;
-
-// class Player {
-//   constructor(x, y) {
-//     this.position = createVector(x, y);
-//     this.velocity = createVector(0, 0);
-//     this.acceleration = createVector(0, 0);
-//     this.bagWeight = 0;
-//     this.baseMass = 20;
-//     this.totalMass = this.baseMass + this.bagWeight;
-//     this.maxOxygen = 60;
-//     this.currentOxygen = this.maxOxygen;
-//     this.oxygenRateIdle = 0.5;
-//     this.oxygenRateSwim = 1.0;
-//     this.oxygenRateSprint = 1.5;
-//     this.oxygenRateAim = 1.25;
-//     this.isThrusting = false;
-//     this.isSprinting = false;
-//     this.isAiming = false;
-//     this.thrustForce = 2.5;
-//     this.sprintMultiplier = 1.5;
-//     this.radius = 20;
-//   }
-
-//   applyForce(force) {
-//     let f = force.copy();
-//     f.div(this.totalMass);
-//     this.acceleration.add(f);
-//   }
-
-//   update() {
-//     let dt = deltaTime / 1000;
-//     if (this.isSprinting && this.isThrusting)
-//       this.currentOxygen -= this.oxygenRateSprint * dt;
-//     else if (this.isThrusting)
-//       this.currentOxygen -= this.oxygenRateSwim * dt;
-//     else if (this.isAiming)
-//       this.currentOxygen -= this.oxygenRateAim * dt;
-//     else this.currentOxygen -= this.oxygenRateIdle * dt;
-//     this.currentOxygen = constrain(this.currentOxygen, 0, this.maxOxygen);
-
-//     this.totalMass = this.baseMass + this.bagWeight;
-//     let gravity = createVector(0, GRAVITY);
-//     gravity.mult(this.totalMass);
-//     this.applyForce(gravity);
-
-//     let buoyancy = createVector(0, BUOYANCY);
-//     buoyancy.mult(this.totalMass);
-//     this.applyForce(buoyancy);
-
-//     let speed = this.velocity.mag();
-//     if (speed > 0) {
-//       let dragMagnitude = speed * speed * DRAG_COEFFICIENT;
-//       let drag = this.velocity.copy();
-//       drag.mult(-1);
-//       drag.normalize();
-//       drag.mult(dragMagnitude);
-//       this.applyForce(drag);
-//     }
-
-//     this.velocity.add(this.acceleration);
-//     this.position.add(this.velocity);
-//     this.acceleration.mult(0);
-//     if (!this.isThrusting && this.velocity.mag() < STOPPING_THRESHOLD)
-//       this.velocity.mult(0);
-
-//     cameraOffset = this.position.x;
-//   }
-
-//   handleInput() {
-//     let thrust = createVector(0, 0);
-//     this.isThrusting = false;
-//     this.isSprinting = false;
-//     if (keyIsDown(16)) this.isSprinting = true;
-//     if (keyIsDown(65)) { thrust.x = -1; this.isThrusting = true; }
-//     if (keyIsDown(68)) { thrust.x = 1; this.isThrusting = true; }
-//     if (keyIsDown(87)) { thrust.y = -1; this.isThrusting = true; }
-//     if (keyIsDown(83)) { thrust.y = 1; this.isThrusting = true; }
-//     let currentThrust = this.thrustForce;
-//     if (this.isSprinting && this.isThrusting)
-//       currentThrust *= this.sprintMultiplier;
-//     thrust.normalize();
-//     thrust.mult(currentThrust);
-//     this.applyForce(thrust);
-//   }
-
-//   checkEdges() {
-//     this.position.x = constrain(this.position.x, -4000, 3000);
-//     this.position.y = constrain(this.position.y, 0, maxDepth);
-//   }
-
-//   display() {
-//     fill(255, 230, 0);
-//     ellipse(this.position.x, this.position.y, this.radius * 2);
-//   }
-// }
 
 // ===============================
 // INPUT HANDLING FOR INVENTORY
 // ===============================
 function mousePressed() {
+  //check if clicking inventory
   if (inventory) inventory.handleClick(mouseX, mouseY);
+  // check if player is firing (left click)
+  //CHANGE TO KEY!!
+  if (mouseButton === LEFT) {
+    player.fire();
+    return;
+  }
 }
 
 function keyPressed() {
+  //ADD KEY HERE for firing 
+  //keyisdown--> player fire 
   if (keyCode === ESCAPE && inventory) inventory.toggle();
 }
 

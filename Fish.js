@@ -1,21 +1,33 @@
 // ===============================
 // FISH CLASS
 // ===============================
+
+
+
+
+
 class Fish {
     // Added gridR and gridC to track persistent fish
     // They default to -1 for ambient (non-grid) fish
-    constructor(type, x, y, dir, speed, size, imgLeft, imgRight, gridR = -1, gridC = -1) {
+    constructor(type, x, y, dir, speed, size, health, imgLeft, imgRight, gridR = -1, gridC = -1) {
         this.type = type;
         this.x = x;
         this.y = y;
         this.dir = dir;
         this.speed = speed;
         this.phase = random(1000);
+        
 
         // === NEW PROPERTIES START ===
         this.size = size; // From fishConfig
+        this.health = health; // From fishConfig
         this.imgLeft = imgLeft; // From fishImages
         this.imgRight = imgRight; // From fishImages
+
+        // weapon interaction properties
+        this.isAttached = false; // is harpoon attached
+        this.attachedHarpoon = null; // reference to harpoon projectile
+        this.dotTimer = 0; // Damage Over Time timer
 
         // Add fallback color based on species if no image
         switch(this.type) {
@@ -24,9 +36,9 @@ class Fish {
             case "Salmon": this.fallbackColor = color(255, 150, 130); break;
             case "Yellowtail": this.fallbackColor = color(255, 255, 100); break;
             case "Scallop": this.fallbackColor = color(245, 210, 180); break;
-            case "Bluefin Tuna": this.fallbackColor = color(0, 0, 150); break;
+            case "Bluefin-Tuna": this.fallbackColor = color(0, 0, 150); break;
             case "Eel": this.fallbackColor = color(100, 120, 80); break;
-            case "Sea Urchin": this.fallbackColor = color(50, 0, 50); break;
+            case "Sea-Urchin": this.fallbackColor = color(50, 0, 50); break;
             default: this.fallbackColor = color(255, 0, 0);
         }
 
@@ -38,6 +50,18 @@ class Fish {
     }
 
     update() {
+        // if attached to harpoon, let the harpoon control movement
+        if (this.isAttached) {
+            // apply damage over time
+            this.applyDotDamage();
+
+            // let the harpoon pull the fish
+            // use this.attachedHarpoon.position (the head of harpoon)
+            this.x = this.attachedHarpoon.position.x;
+            this.y = this.attachedHarpoon.position.y;
+            return; // stop normal movement
+        }
+
         // Stop Sea Urchins from moving
         if (this.type === "Sea Urchin") {
             this.speed = 0;
@@ -52,6 +76,30 @@ class Fish {
         this.y += sin(frameCount * 0.09 + this.phase) * 0.4;
     }
 
+    // --- DAMAGE LOGIC ---
+
+    // this is for Harpoon's DOT
+    applyDotDamage() {
+        if (this.attachedHarpoon && this.attachedHarpoon.state === "ATTACHED") {
+            let dt = deltaTime / 1000; // convert milliseconds to seconds
+            this.dotTimer += dt;
+
+            if (this.dotTimer >= 1.0) { // apply damage every second
+                this.takeDamage(weaponConfig["Harpoon"].damage);
+                this.dotTimer = 0; // reset timer
+            }
+        }
+    }
+
+    takeDamage(amount) {
+        if (this.health <= 0) return; // already dead
+
+        this.health -= amount;
+        if (this.health <= 0) {
+            this.health = 0;
+        }
+    }
+
     isOffScreen(cameraOffset) {
         // Increased buffer to 200 to prevent pop-in
         let viewportLeft = cameraOffset - width / 2 - 200;
@@ -60,6 +108,9 @@ class Fish {
     }
 
     closeTo() {
+        // cannot flee if attached
+        if (this.isAttached) return false;
+        
         // Scallops and Urchins don't flee
         if (this.type === "Scallop" || this.type === "Sea Urchin") {
             return; 
@@ -100,7 +151,9 @@ class Fish {
 
         // Draw the fish
         if (currentImg) {
-            image(currentImg, this.x, this.y, this.size, this.size);
+            let stretchX = fishStretch[this.type];
+            image(currentImg, this.x, this.y, this.size * stretchX, this.size);
+            // image(currentImg, this.x, this.y, this.size, this.size);
         }
         else {
             // If image is missing, draw a circle with fallback color

@@ -46,6 +46,14 @@ class Player {
         this.sprintMultiplier = 1.5; // sprint speed multiplier
         this.radius = 20; // right now use circle, maybe delete this in future
 
+        // weapon properties
+        // Player owns Harpoon by default
+        this.weapons = {"Harpoon": true, "SpearGun": false, "Netgun": false}; // tracks owned weapons
+        this.currentWeapon = "Harpoon"; // current selected weapon
+        this.ammo = {"Harpoon": Infinity, "SpearGun": 0, "Netgun": 0}; // ammo count
+        // harpoon state
+        this.harpoonOut = false; // only one harpoon at a time
+
     }
 
     // a method to apply any force to the player
@@ -58,12 +66,17 @@ class Player {
 
     // this is the main function to update the player's physics
     update() {
+        let dt = deltaTime / 1000; // convert milliseconds to seconds
+
+        // stop moving when aiming or harpoon is out
+        if (this.isAiming || this.harpoonOut) {
+            this.isThrusting = false;
+        }
+
 
         // --------- OXYGEN LOGIC ---------
 
         // Oxygen consumption
-        let dt = deltaTime / 1000; // convert milliseconds to seconds
-
         if (this.isSprinting && this.isThrusting) {
             // springting consumes 1.5/s
             this.currentOxygen -= this.oxygenRateSprint * dt;
@@ -111,13 +124,18 @@ class Player {
             this.applyForce(drag);
         }
 
+        // stop player from drifting when aiming OR harpoon is out
+        if (this.isAiming || this.harpoonOut) {
+            this.velocity.mult(0.9); // apply heavy drag
+        }
+
         // update to Player
         this.velocity.add(this.acceleration); // velocity chage by acceleration
         this.position.add(this.velocity); // position changes by velocity
         this.acceleration.mult(0); // change the acceleration back to 0
 
         // if the player is not thrusting and velocity is very small, stop completely
-        if (!this.isThrusting && this.velocity.mag() < STOPPING_THRESHOLD) {
+        if (!this.isThrusting && !this.harpoonOut && !this.isAiming && this.velocity.mag() < STOPPING_THRESHOLD) {
             this.velocity.mult(0);
         }
 
@@ -127,6 +145,22 @@ class Player {
 
     // move by player
     handleInput() {
+        // --------- AIMING LOGIC ---------
+        // check for aiming input (right mouse button)
+        if (mouseIsPressed && mouseButton === RIGHT) {
+            this.isAiming = true;
+        } else {
+            this.isAiming = false;
+        }
+
+        // if aiming OR harpoon is out, do not allow movement
+        if (this.isAiming || this.harpoonOut) {
+            this.isThrusting = false;
+            this.isSprinting = false;
+            return; // stop here, no movement allowed
+        }
+
+
         let thrust = createVector(0,0);
 
         // reset states
@@ -166,12 +200,54 @@ class Player {
         this.applyForce(thrust);
     }
 
+    // fire method for shooting projectiles
+    fire() {
+        // we can't fire if not aiming
+        if (!this.isAiming) return;
+
+        // get the config for the current weapon
+        let config = weaponConfig[this.currentWeapon];
+
+        // --- harpoon specific logic ---
+        if (this.currentWeapon === "Harpoon") {
+            // can only have one harpoon out at a time
+            if (this.harpoonOut) return;
+
+            // calculate direction from player to mouse
+            let worldMouseX = mouseX - width / 2 + this.position.x;
+            let worldMouseY = mouseY - height / 2 + this.position.y;
+
+            let fireVel = createVector(worldMouseX - this.position.x, worldMouseY - this.position.y);
+            fireVel.setMag(config.projectileSpeed);
+
+            // create the projectile
+            let harpoon = new HarpoonProjectile(this.position.x, this.position.y, fireVel, config, this);
+            activeProjectiles.push(harpoon);
+
+            // set harpoon out state
+            this.harpoonOut = true;
+        }
+
+        // --- other weapons logic can be added here ---
+            
+    }
+
     // draw the player
     display() {
         // need to change(right now just a ball)
         noStroke();
         fill(255, 230, 0);
         ellipse(this.position.x, this.position.y, this.radius * 2, this.radius * 2);
+
+        // draw aiming line
+        if (this.isAiming) {
+            let worldMouseX = mouseX - width / 2 + this.position.x;
+            let worldMouseY = mouseY - height / 2 + this.position.y;
+
+            stroke(255, 0, 0, 100);
+            strokeWeight(2);
+            line(this.position.x, this.position.y, worldMouseX, worldMouseY);
+        }
 
         // this is for debug
         stroke(20);

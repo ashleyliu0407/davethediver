@@ -1,7 +1,8 @@
 class Box{
     constructor(x, y, img) {
         this.position = createVector(x, y);
-        this.size = 52;
+        // this.size = 52;
+        this.size = 45;
         this.isCollected = false;
         this.img = img;
     }
