@@ -46,7 +46,7 @@ class Player {
         this.isAiming = false; // implement later
 
         // control and appearance properties
-        this.thrustForce = 2.5; // base move speed
+        this.thrustForce = 3; // base move speed
         this.sprintMultiplier = 1.5; // sprint speed multiplier
         this.radius = 20; // right now use circle, maybe delete this in future
 

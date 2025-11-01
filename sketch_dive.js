@@ -109,7 +109,7 @@ const AMBIENT_FISH_TYPES = [...new Set([
 // LOAD IMAGES
 // ===============================
 function preload() {
-  backpackIconImg = loadImage("images/BagUI.png");
+  backpackIconImg = loadImage("images/bag/BagUI.png");
   // boxImages.oxygen = loadImage("images/OxygenBox.png");
   boxImages.oxygen = loadImage("images/oxyg.png");
 
@@ -157,7 +157,7 @@ function setup() {
   maxDepth = oceanHeight;
 
   // Use Inventory class from external file
-  inventory = new Inventory(12, backpackIconImg); // can change
+  inventory = new Inventory(6, backpackIconImg); // can change
   spawnOxygenBoxes();
 }
 
