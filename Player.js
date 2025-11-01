@@ -5,6 +5,10 @@
 //  4. thrust
 
 
+let character_state = []; 
+
+
+
 // a constant for the force of gravity
 const GRAVITY = 0.1;
 // a constant for the drag force coeffiecient (higher means thicker water)
@@ -16,11 +20,15 @@ const BUOYANCY = -0.109;
 const STOPPING_THRESHOLD = 0.1;
 
 class Player {
-    constructor(x,y) {
+    constructor(x,y, diverImgs) {
         // some physics properties
         this.position = createVector(x,y);
         this.velocity = createVector(0,0);
         this.acceleration = createVector(0,0);
+
+        //player
+        this.diverImgs = diverImgs;
+        this.currentImg = this.diverImgs.still;
 
         // gameplay and mass properties
         this.bagWeight = 0;
@@ -141,10 +149,14 @@ class Player {
 
         // move camera
         cameraOffset = this.position.x;
+
     }
 
     // move by player
     handleInput() {
+
+        let moving = false;
+
         // --------- AIMING LOGIC ---------
         // check for aiming input (right mouse button)
         if (mouseIsPressed && mouseButton === RIGHT) {
@@ -170,24 +182,56 @@ class Player {
 
         if (keyIsDown(16)) { // "shift"
             this.isSprinting = true;
+            moving = true;
         }
 
         if (keyIsDown(65)) { // "a"
+            this.currentImg = this.diverImgs.swimLeft; //FOR PLAYER - LEFT
             thrust.x = -1; // direction only
             this.isThrusting = true;
+            moving = true;
         }
         if (keyIsDown(68)) { // "d"
+            this.currentImg = this.diverImgs.swimRight;// FOR PLAYER - RIGHT
             thrust.x = 1;
             this.isThrusting = true;
+            moving = true;
         }
         if (keyIsDown(87)) { // "w"
             thrust.y = -1;
             this.isThrusting = true;
+            moving = true;
         }
         if (keyIsDown(83)) { // "s"
+            this.currentImg = this.diverImgs.swimDown;// FOR PLAYER - RIGHT
             thrust.y = 1;
             this.isThrusting = true;
+            moving = true;
         }
+
+        if(!moving){
+            this.currentImg = this.diverImgs.still;
+        }
+        
+        
+
+        // //AIMING + DIRECTION FACING 
+        // else if(this.isAiming && keyPressed(65)){
+        //     this.currentImg = this.diverImgs.aimL;
+        // }
+        // else if(this.isAiming && keyPressed(68)){
+        //     this.currentImg = this.diverImgs.aimR;
+        // }
+        // else if(this.harpoonOut && keyPressed(65)){
+        //     this.currentImg = this.diverImgs.shootL;
+        // }
+        // else if(this.harpoonOut && keyPressed(68)){
+        //     this.currentImg = this.diverImgs.shootR;
+        // }
+
+    
+
+
 
         let currentThrust = this.thrustForce;
         if (this.isSprinting && this.isThrusting) {
@@ -235,9 +279,15 @@ class Player {
     // draw the player
     display() {
         // need to change(right now just a ball)
-        noStroke();
-        fill(255, 230, 0);
-        ellipse(this.position.x, this.position.y, this.radius * 2, this.radius * 2);
+        // noStroke();
+        // fill(255, 230, 0);
+        // ellipse(this.position.x, this.position.y, this.radius * 2, this.radius * 2);
+
+        //IMAGE
+        imageMode(CENTER);
+        // image(this.currentImg, this.position.x, this.position.y, 120, 120);
+        // this.currentImg.width * 0.4, this.currentImg.height * 0.4
+        image(this.currentImg, this.position.x, this.position.y, this.currentImg.width * 0.4, this.currentImg.height * 0.4);
 
         // draw aiming line
         if (this.isAiming) {
@@ -250,11 +300,11 @@ class Player {
         }
 
         // this is for debug
-        stroke(20);
-        let v = this.velocity.copy();
-        v.mult(10);
-        line(this.position.x, this.position.y, this.position.x+ v.x, this.position.y + v.y);
-        noStroke();
+        // stroke(20);
+        // let v = this.velocity.copy();
+        // v.mult(10);
+        // line(this.position.x, this.position.y, this.position.x+ v.x, this.position.y + v.y);
+        // noStroke();
     }
 
     // collision with the edge of canvas(need to change: maybe need to add more)

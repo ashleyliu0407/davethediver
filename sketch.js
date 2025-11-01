@@ -20,7 +20,8 @@ let cameraOffset = 0;
 let inventory;
 let backpackIconImg;
 
-
+//player 
+let diverImgs = {};
 
 //for box:
 let activeBoxes = [];
@@ -107,6 +108,20 @@ function preload() {
   // boxImages.oxygen = loadImage("images/OxygenBox.png");
   boxImages.oxygen = loadImage("images/oxyg.png");
 
+  //diver imgs 
+  diverImgs.still = loadImage("images/diver/dave_S.png");
+  diverImgs.swimLeft = loadImage("images/diver/dave_L.png");
+  diverImgs.swimRight = loadImage("images/diver/dave_R.png");
+  diverImgs.swimDown = loadImage("images/diver/dave_D.png");
+
+  diverImgs.aimL = loadImage("images/diver/dave_LG.png");
+  diverImgs.aimR = loadImage("images/diver/dave_RG.png");
+  diverImgs.shootL = loadImage("images/diver/dave_LS.png");
+  diverImgs.shootR = loadImage("images/diver/dave_RS.png");
+
+
+
+
   // add fish image loading logic(need to change)
   for (let species of allSpecies) {
     fishImages[species] = { left: null, right: null }; 
@@ -130,7 +145,7 @@ function setup() {
   //Font
   textFont('Quantico');
 
-  player = new Player(0, 0);
+  player = new Player(0, 0, diverImgs);
   oceanHeight = GRID_ROWS * CELL_HEIGHT;
   maxDepth = oceanHeight;
 
