@@ -36,7 +36,7 @@ let cookButtonHeight = 40;
 let gameState = 'preparation'; // 'preparation' or 'serving'
 
 // money and day system
-let totalMoney = gameData.money || 0;
+let totalMoney = gameData.coins || 0;
 let currentDay = gameData.day || 1;
 let coinIcon;
 
