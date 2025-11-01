@@ -33,8 +33,8 @@ function getAvailableCustomerTypes() {
 function loadCustomerImages() {
   // image names: customer1_side.png, customer1_front.png, etc.
   for (let i = 1; i <= 5; i++) {
-    customerSideImages['customer' + i] = loadImage('images/customer' + i + '_side.png');
-    customerFrontImages['customer' + i] = loadImage('images/customer' + i + '_front.png');
+    customerSideImages['customer' + i] = loadImage('images/restaurant/customers/customer' + i + '_side.png');
+    customerFrontImages['customer' + i] = loadImage('images/restaurant/customers/customer' + i + '_front.png');
   }
 }
 
@@ -67,7 +67,7 @@ function updateCustomers() {
       
       // walk from left to right (only if not blocked)
       if (!blocked) {
-        customer.x += 2;
+        customer.x += 4;
       }
       
       // reached target position

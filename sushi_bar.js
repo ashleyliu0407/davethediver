@@ -38,13 +38,13 @@ let earningsMessages = []; // array of {text, x, y, alpha, timer}
 
 // load all UI images before setup & draw
 function preload() {
-  images.sleep = loadImage('images/sleep_icone.png');
+  images.sleep = loadImage('images/restaurant/icons/sleep_icone.png');
   // images.reservation = loadImage('images/reservation_icon.png');
-  images.ingredient = loadImage('images/ingredient_icon.png');
-  images.menu = loadImage('images/menu_icon.png');
-  images.plate = loadImage('images/plate.png');
-  images.tray = loadImage('images/tray.png');
-  coinIcon = loadImage('images/coin.png'); // add coin icon image
+  images.ingredient = loadImage('images/restaurant/icons/ingredient_icon.png');
+  images.menu = loadImage('images/restaurant/icons/menu_icon.png');
+  images.plate = loadImage('images/restaurant/decorations/plate.png');
+  images.tray = loadImage('images/restaurant/decorations/tray.png');
+  coinIcon = loadImage('images/restaurant/decorations/coin.png'); // add coin icon image
   
   for (let ingredient of ingredients) {ingredientImages[ingredient.name] = loadImage(ingredient.image);}
   for (let item of menuItems) {menuImages[item.name] = loadImage(item.image);}
