@@ -96,7 +96,11 @@ function setup() {
   homeButton.style("cursor", "pointer");
   homeButton.style("font-family", "Quantico, sans-serif");
   homeButton.position(20, 20);
-  // homeButton.mousePressed();
+  homeButton.mousePressed(() => {
+  // navigate back to home screen
+    window.location.href = "index.html";
+  });
+
   
 }
 
@@ -224,4 +228,9 @@ function startDive() {
     isDiving = true;
     diveVelocity = -4;
   }
+    // Short animation delay
+  setTimeout(() => {
+    window.location.href = "dive.html";
+  }, 800);
+
 }

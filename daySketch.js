@@ -36,7 +36,6 @@ function preload(){
 function setup(){
     createCanvas(1400,800);
     textAlign(CENTER, CENTER);
-    localStorage.removeItem("gameData");
     textSize(250);
     textFont("Quantico, sans-serif");
     fill(255);
@@ -61,8 +60,8 @@ function draw(){
 
   if(frameCounter > 200){
     window.location.href = "boatStart.html";  // change this to your desired page
-    gameData.day++;
-    localStorage.setItem("gameData", JSON.stringify(gameData));
+    // gameData.day++;
+    // localStorage.setItem("gameData", JSON.stringify(gameData));
     dayIncremented = true; 
   }
 
