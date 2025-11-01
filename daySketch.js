@@ -1,4 +1,5 @@
 let backgroundImg;
+//LOCAL STORAGE
 let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   day: 1,
   coins: 100,
@@ -41,6 +42,7 @@ function setup(){
     fill(255);
     x = width / 2;
     y = height / 2;
+   
 
 
    
@@ -48,6 +50,7 @@ function setup(){
 
 
 function draw(){
+
  
   image(backgroundImg, 0, 0, width, height);
   frameCounter++;

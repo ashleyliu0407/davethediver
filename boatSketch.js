@@ -1,11 +1,21 @@
+let gameData = JSON.parse(localStorage.getItem("gameData")) || {
+  day: 1,
+  coins: 100,
+  inventory: []
+};
+
+
+
 
 let boat;
 let boatImg; 
 let character;
+let coinIcon; 
 
 let diveButton;
 let restaurantButton; 
 let homeButton; 
+let unloadButton; 
 
 
 let isUnderwater = false;
@@ -38,6 +48,7 @@ function preload(){
     fgImg = loadImage("images/clouds.png");
 
     boatImg = loadImage("images/boat.png");
+    coinIcon = loadImage('images/restaurant/decorations/coin.png'); // add coin icon image
 
 }
 
@@ -61,20 +72,32 @@ function setup() {
     x: boat.x,
     y: 0 // will be set in draw
   };
+
+  // Create unload button
+  unloadButton = createButton('UNLOAD & SAVE FISH');
+  unloadButton.size(120, 60);
+  unloadButton.style("font-size", "15px");
+  unloadButton.style("color", "#bddcfdff");
+  unloadButton.style("background-color", "#084387ff");
+  unloadButton.style("border-radius", "8px");
+  unloadButton.style("cursor", "pointer");
+  unloadButton.style("font-family", "Quantico, sans-serif");
+  unloadButton.position(width/2, height/2);
+  unloadButton.mousePressed(startDive);
   
   // Create dive button
   diveButton = createButton('DIVE');
-  diveButton.size(120, 60);
+  diveButton.size(80, 60);
   diveButton.style("font-size", "15px");
-  diveButton.style("color", "#bddcfdff");
-  diveButton.style("background-color", "#084387ff");
+  diveButton.style("color", "black");
+  diveButton.style("background-color", "#ff532cff");
   diveButton.style("border-radius", "8px");
   diveButton.style("cursor", "pointer");
   diveButton.style("font-family", "Quantico, sans-serif");
-  diveButton.position(width/2, height/2);
+  diveButton.position(width/2-200, height/2);
   diveButton.mousePressed(startDive);
 
-    // Create dive button
+    // Create restuarant button
   restaurantButton = createButton('END DAY & GO TO THE RESTAURANT');
   restaurantButton.size(180, 60);
   restaurantButton.style("font-size", "15px");
@@ -98,7 +121,7 @@ function setup() {
   homeButton.position(20, 20);
   homeButton.mousePressed(() => {
   // navigate back to home screen
-    window.location.href = "index.html";
+    window.location.href = "start.html";
   });
 
   
@@ -106,7 +129,10 @@ function setup() {
 
 function draw() {
   if (!isUnderwater) {
+    
     drawSurfaceScene();
+    drawMoneyAndDay();
+    
   } else {
     drawUnderwaterScene();
   }
@@ -118,12 +144,7 @@ function draw() {
 function drawSurfaceScene() {
   // Sky
   // background(135, 206, 235);
-  
-  
   image(bgImg, bgX1, 0, width, height);
-
-  
-
   //Clouds
   push();
   tint(255, 150);
@@ -234,3 +255,30 @@ function startDive() {
   }, 800);
 
 }
+
+function drawMoneyAndDay() {
+  push();
+  textFont('Courier New');
+  
+  // Coin icon
+  imageMode(CORNER);
+  image(coinIcon, 20, 80, 40, 40);
+  
+  // Money amount
+  fill(255, 215, 0); // gold color
+  stroke(0);
+  strokeWeight(3);
+  textAlign(LEFT, CENTER);
+  textSize(28);
+  text('$' + gameData.coins, 70, 100);
+  
+  // Day indicator
+  fill(255);
+  stroke(0);
+  strokeWeight(2);
+  textSize(20);
+  text('Day ' + gameData.day, 30, 140);
+  
+  pop();
+}
+
