@@ -1,7 +1,7 @@
 let backgroundImg;
 let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   day: 1,
-  coins: 0,
+  coins: 100,
   inventory: []
 };
 
