@@ -1,3 +1,10 @@
+// local storage
+let gameData = JSON.parse(localStorage.getItem("gameData")) || {
+  day: 1,
+  coins: 100,
+  inventory: []
+};
+
 // sushi_bar.js - FIXED VERSION
 // array fro icons in the icon bar; icon under mouse; modal that is open
 let icons = [];
@@ -29,8 +36,8 @@ let cookButtonHeight = 40;
 let gameState = 'preparation'; // 'preparation' or 'serving'
 
 // money and day system
-let totalMoney = 0;
-let currentDay = 1;
+let totalMoney = gameData.money || 0;
+let currentDay = gameData.day || 1;
 let coinIcon;
 
 // earnings display
@@ -984,8 +991,11 @@ function mouseWheel(event) {
 }
 
 function endDay() {
-  // Advance day
   currentDay++;
+
+  gameData.coins = totalMoney;
+  gameData.day = currentDay;
+  localStorage.setItem("gameData", JSON.stringify(gameData));
   
   // Reset game state
   gameState = 'preparation';
@@ -1051,4 +1061,6 @@ function endDay() {
   }
   
   console.log('Day ' + currentDay + ' begins! Total money: $' + totalMoney);
+
+  window.location.href = "day.html";
 }
