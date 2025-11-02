@@ -573,42 +573,57 @@ function drawReadyToServeButton() {
   if (gameState === 'preparation') {
     push();
     
-    // Button position (top center)
+    if (activePopup) {
+      pop();
+      return;
+    }
+    
     let buttonX = width / 2;
     let buttonY = 150;
     let buttonWidth = 220;
     let buttonHeight = 60;
     
     let isHovered = mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
-                    mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2;
+                    mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2
     
-    // Main button text - larger and whiter
     noStroke();
     fill(isHovered ? color(255, 255, 255, 255) : color(255, 255, 255, 200));
     textAlign(CENTER, CENTER);
-    textSize(isHovered ? 32 : 28); // much larger
-    text('READY TO SERVE', buttonX, buttonY);
+    textSize(isHovered ? 32 : 28);
+    text(currentDay === 1 ? 
+         "CLICK HERE TO START YOUR FIRST DAY!" : 
+         "CLICK HERE TO OPEN YOUR SUSHI BAR", 
+         buttonX, buttonY);
     
-    // Thicker underline on hover
     if (isHovered) {
       stroke(255, 255, 255, 220);
-      strokeWeight(3); // thicker
-      line(buttonX - 90, buttonY + 20, buttonX + 90, buttonY + 20);
+      strokeWeight(3);
+      line(buttonX - 200, buttonY + 20, buttonX + 200, buttonY + 20);
     }
     
-    // Explanation text below button
     noStroke();
     fill(255, 255, 255, 180);
     textSize(16);
-    text('Set your Menu based on your ingredients', buttonX, buttonY + 50);
+    text(currentDay === 1 ? 
+         '** TUTORIAL: SET YOUR MENU BEFORE OPENING (REQUIRED) **' : 
+         '** MUST SET YOUR MENU BEFORE OPENING **', 
+         buttonX, buttonY + 50);
     
-    fill(255, 255, 255, 120);
+    fill(255, 255, 255, 180);
     textSize(14);
-    text('Good luck tonight', buttonX, buttonY + 75);
+    
+    if (currentDay === 1) {
+      text('1. Click MENU icon: enable dishes you want to serve', buttonX, buttonY + 80);
+      text('2. Click INGREDIENTS icon: place items on table or throw it away', buttonX, buttonY + 100);
+      text('3. Drag ingredients to TRAY: click COOK to make dishes and drag finished dishes to plates', buttonX, buttonY + 120);
+      text('4. Click SLEEP icon: advance to the next day, ingredients on table auto-discard', buttonX, buttonY + 140);
+      text('TIP: Match customer orders and freshness matters! Ingredients auto-discard after 3 days. Average freshness < 2 brings more tips.', buttonX, buttonY + 160);
+    } else {
+      text('tips: select dishes based on your available ingredients', buttonX, buttonY + 75);
+    }
     
     pop();
     
-    // Store button bounds for click detection
     this.readyButtonBounds = {x: buttonX - buttonWidth/2, y: buttonY - buttonHeight/2, w: buttonWidth, h: buttonHeight};
   }
 }
