@@ -62,7 +62,7 @@ const weaponConfig = {
     type: "DAMAGE",
     damage: 5,
     projectileSpeed: 10,
-    range: 400
+    range: 500
   },
   "Netgun": {
     type: "CATCH",
@@ -151,6 +151,7 @@ function preload() {
 
   // load weapon images
   weaponImages.Harpoon = loadImage("images/Harpoon.png");
+  weaponImages.SpearProjectile = loadImage("images/weapons/SpearProjectile.png");
 
   //menu image
   menuPopupImg = loadImage("images/fish/menu.png");
@@ -540,8 +541,23 @@ function updateProjectiles() {
         }
       }
     }
+    else if (proj.type === "DAMAGE") {
+      // this is a SpearGun Projectile
+      for (let j = activeFish.length - 1; j >= 0; j--) {
+        let fish = activeFish[j];
+        if (fish.health <= 0) continue; // skip dead fish
 
-    // will add SpearGun and Netgun logic later
+        let d = dist(proj.position.x, proj.position.y, fish.x, fish.y);
+        if (d < fish.size / 2) {
+          // hit!
+          fish.takeDamage(proj.damage);
+          proj.isActive = false; // spear disappears on hit
+          break;
+        }
+      }
+    }
+
+    // will add Netgun logic in future
 
     // check if projectile is expired
     if (!proj.isActive) {
@@ -611,24 +627,51 @@ function drawMenu(){
 // INPUT HANDLING FOR INVENTORY
 // ===============================
 function mousePressed() {
-  //check if clicking inventory
-  if (inventory) inventory.handleClick(mouseX, mouseY);
+  // if instructions are showing, hide them on any click
   if (showInstructions) {
     showInstructions = false; 
+    return;
   }
 
-  //menu
-  
+  // if right now is aiming, fire
+  if (mouseButton === LEFT && player.isAiming) {
+    player.fire();
+    player.isAiming = false;
+    return;
+  }
+
+  // if clicking on menu
   if (mouseX > 1210 && mouseX < 1290 && mouseY > 730 && mouseY < 770) {
     showMenuPopup = !showMenuPopup;
+    return;
   }
 
-
+  // pass mouse event to inventory
+  if (inventory) inventory.handleClick(mouseX, mouseY);
 }
 
-function keyPressed() {
-
+function keyPressed(event) {
   if (keyCode === ESCAPE && inventory) inventory.toggle();
+  if (keyCode === TAB) {
+    event.preventDefault(); // prevent default tab behavior
+    let ownedWeapons = [];
+    for (let weaponName in player.weapons) {
+      if (player.weapons[weaponName]) { // check if true (owned)
+        ownedWeapons.push(weaponName);
+      }
+    }
+
+    let currentIndex = ownedWeapons.indexOf(player.currentWeapon);
+    let nextIndex = (currentIndex + 1) % ownedWeapons.length;
+    player.currentWeapon = ownedWeapons[nextIndex];
+  }
+
+  if (keyCode === 49) { // '1' key
+    if (player.isAiming) {
+      player.fire();
+      player.isAiming = false;
+    }
+  }
 }
 
 

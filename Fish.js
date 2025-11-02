@@ -46,12 +46,19 @@ class Fish {
         this.gridC = gridC; // The grid column
         // If gridR is -1, it's an ambient fish, not a persistent one
         this.isAmbient = (this.gridR === -1);
+
+        this.damageFlashTimer = 0; // timer for damage flash effect
     }
 
     update() {
         // health bar timer update
         if (this.healthShowTimer > 0) {
             this.healthShowTimer -= deltaTime / 1000;
+        }
+
+        // damage flash timer update
+        if (this.damageFlashTimer > 0) {
+            this.damageFlashTimer -= deltaTime / 1000;
         }
 
         // if attached to harpoon, let the harpoon control movement
@@ -64,6 +71,16 @@ class Fish {
             this.x = this.attachedHarpoon.position.x;
             this.y = this.attachedHarpoon.position.y;
             return; // stop normal movement
+        }
+
+        if (this.health <= 0) {
+            // // dead fish goes to player
+            // this.x = lerp(this.x, player.position.x, 0.05);
+            // this.y = lerp(this.y, player.position.y, 0.05);
+            // dead fish goes up slowly
+            this.y -= 0.4;
+
+            return;
         }
 
         // if player is aiming at this fish, move slower
@@ -101,9 +118,15 @@ class Fish {
     takeDamage(amount) {
         if (this.health <= 0) return; // already dead
 
+        this.damageFlashTimer = 0.3; // trigger damage flash effect (can change)
+
         this.health -= amount;
         if (this.health <= 0) {
             this.health = 0;
+
+            // if dead, pause gif
+            if (this.imgLeft) this.imgLeft.pause();
+            if (this.imgRight) this.imgRight.pause();
         }
 
         // show health bar
@@ -120,6 +143,9 @@ class Fish {
     closeTo() {
         // cannot flee if attached
         if (this.isAttached) return false;
+
+        // if fish is dead, it cannot flee
+        if (this.health <= 0) return false;
         
         // Scallops and Urchins don't flee
         if (this.type === "Scallop" || this.type === "Sea-Urchin") {
@@ -157,7 +183,18 @@ class Fish {
             currentImg = this.imgLeft; // facing left
         }
 
+        push();
         imageMode(CENTER);
+
+        // tint based on health and damage
+        if (this.health <= 0) {
+            // if fish is dead, draw a dark tint
+            tint(100);
+        }
+        else if (this.damageFlashTimer > 0) {
+            // flash red when damaged
+            tint(255, 100, 100);
+        }
 
         // Draw the fish
         if (currentImg) {
@@ -171,6 +208,8 @@ class Fish {
             noStroke();
             ellipse(this.x, this.y, this.size, this.size);
         }
+
+        pop();
 
         if (this.healthShowTimer > 0 && this.health > 0) {
             push();

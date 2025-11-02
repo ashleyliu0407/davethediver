@@ -56,15 +56,15 @@ class Player {
         // weapon properties
         // Player owns Harpoon by default
         this.weapons = {
-            "knife": false,
+            "Knife": false,
             "Harpoon": true,
-            "SpearGun": false,
+            "SpearGun": true,
             "Netgun": false
         }; // tracks owned weapons
         this.currentWeapon = "Harpoon"; // current selected weapon
         this.ammo = {
             "Harpoon": Infinity,
-            "SpearGun": 0,
+            "SpearGun": 10,
             "Netgun": 0
         }; // ammo count
         // harpoon state
@@ -168,16 +168,11 @@ class Player {
         if (mouseIsPressed && mouseButton === RIGHT && !this.harpoonOut) {
             this.isAiming = true;
             this.currentImg = this.diverImgs.aim;
-            
-        } else {
+        }
+        else if (!mouseIsPressed && this.isAiming) { // released all mouse button
             this.isAiming = false;
         }
 
-        // --------- FIRE LOGIC ---------
-        if (this.isAiming && (mouseIsPressed && mouseButton === LEFT || keyIsDown(49))) {
-            this.fire();
-            this.isAiming = false;
-        }
 
         // --------- MOVEMENT LOGIC ---------
         // if aiming OR harpoon is out, do not allow movement
@@ -248,17 +243,16 @@ class Player {
         // get the config for the current weapon
         let config = weaponConfig[this.currentWeapon];
 
+        // calculate direction from player to mouse
+        let worldMouseX = mouseX - width / 2 + this.position.x;
+        let worldMouseY = mouseY - height / 2 + this.position.y;
+        let fireVel = createVector(worldMouseX - this.position.x, worldMouseY - this.position.y);
+        fireVel.setMag(config.projectileSpeed);
+
         // --- harpoon specific logic ---
         if (this.currentWeapon === "Harpoon") {
             // can only have one harpoon out at a time
             if (this.harpoonOut) return;
-
-            // calculate direction from player to mouse
-            let worldMouseX = mouseX - width / 2 + this.position.x;
-            let worldMouseY = mouseY - height / 2 + this.position.y;
-
-            let fireVel = createVector(worldMouseX - this.position.x, worldMouseY - this.position.y);
-            fireVel.setMag(config.projectileSpeed);
 
             // create the projectile
             let harpoon = new HarpoonProjectile(this.position.x, this.position.y, fireVel, config, this);
@@ -266,6 +260,21 @@ class Player {
 
             // set harpoon out state
             this.harpoonOut = true;
+        }
+        else if (this.currentWeapon === "SpearGun") {
+            // check ammo
+            if (this.ammo["SpearGun"] > 0) {
+                // create the projectile
+                let spear = new SpearProjectile(this.position.x, this.position.y, fireVel, config, this);
+                activeProjectiles.push(spear);
+                
+                // decrease ammo
+                this.ammo["SpearGun"]--;
+            }
+            else {
+                // no ammo, maybe play a sound or show a message
+                console.log("Out of SpearGun ammo!");
+            }
         }
 
         // --- other weapons logic can be added here ---
