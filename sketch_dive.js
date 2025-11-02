@@ -179,7 +179,7 @@ function setup() {
   spawnOxygenBoxes();
 
   // Create return button
-  returnButton = createButton('Return to Boat');
+  returnButton = createButton('Return & Unload Fish At The Boat');
   returnButton.position(180, 60);
   returnButton.style("font-size", "15px");
   returnButton.style("color", "black");
@@ -284,7 +284,9 @@ function draw() {
   if (showInstructions) {
     // Text content
     noStroke();
-    fill(0);
+    push();
+    fill(255);
+    pop();
     textAlign(CENTER, CENTER);
     textSize(20);
     text(
@@ -305,7 +307,7 @@ function draw() {
   textAlign(CENTER, CENTER);
   textSize(20);
    text(
-      "Menu",
+      "Guide",
       1250, 750
   );
   
@@ -585,23 +587,22 @@ function drawMenu(){
   resetMatrix();
   imageMode(CORNER);
     
-  // adjust position to sit beside inventory
   let popupX = width - 420; 
   let popupY = height - 400;
 
   // semi-transparent background box
-  fill(0, 150);
+  fill(200);
   noStroke();
-  rect(popupX - 10, popupY - 10, 350, 280, 10);
+  
 
   // draw menu image
-  image(menuPopupImg, popupX, popupY, 330, 260);
+  image(menuPopupImg, popupX-50, popupY, 430, 290);
 
   // optional label
   fill(255);
   textSize(30);
   textAlign(LEFT, TOP);
-  text("Dave's Menu", popupX + 10, popupY - 50);
+  text("Fish Guide", popupX-50, popupY - 50);
   pop();
 }
 

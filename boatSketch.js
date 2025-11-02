@@ -39,6 +39,9 @@ let alpha = 0;
 let fading = false;
 let nextPage = "";
 
+//instructions
+let showInstructions = true;
+let instructionBoxAlpha = 220;
 
 
 
@@ -151,13 +154,47 @@ function draw() {
   //Smooth transition to pages
   if (fading) {
     alpha += 3; 
-    fill(200, alpha);
+    fill(250, alpha);
     noStroke();
     rect(0, 0, width, height);
 
     if (alpha >= 255) {
       window.location.href = nextPage;
     }
+  }
+
+  //instructions pop up on the screen
+  //instructions
+  if (showInstructions) {
+
+    // Popup box
+    fill(255, instructionBoxAlpha);
+    stroke(0);
+    strokeWeight(2);
+    rectMode(LEFT);
+    fill(250);
+    rect(900, 60, 440, 200, 20);
+  
+    // Text content
+    noStroke();
+    textFont("Quantico, sans-serif");
+    fill(0);
+    textAlign(CORNER);
+    textSize(15);
+    text(
+      "DIVE to COLLECT fish\n\n" +
+      "• You can dive as many times as you’d like each day.\n\n" +
+      "• Your catches are automatically saved after every dive.\n\n" +
+      "• Visit the restaurant once you’re done diving!\n\n", 
+      930, 110
+    );
+  }
+
+}
+
+function mousePressed(){
+  if (showInstructions) {
+    showInstructions = false; 
   }
 }
 
