@@ -70,7 +70,7 @@ class Fish {
         let slowFactor = player.isAiming ? 0.4 : 1.0; // （can change）
 
         // Stop Sea Urchins from moving
-        if (this.type === "Sea Urchin") {
+        if (this.type === "Sea-Urchin") {
             this.speed = 0;
             return;
         }
@@ -122,7 +122,7 @@ class Fish {
         if (this.isAttached) return false;
         
         // Scallops and Urchins don't flee
-        if (this.type === "Scallop" || this.type === "Sea Urchin") {
+        if (this.type === "Scallop" || this.type === "Sea-Urchin") {
             return; 
         }
 

@@ -68,7 +68,7 @@ const weaponConfig = {
 // fish definitions
 const fishPools = {
   shallow: ["Mackerel", "Sardine"],
-  medium: ["Salmon", "Yellowtail", "Scallop", "Mackerel", "Sardine"],
+  medium: ["Salmon", "Yellowtail", "Mackerel", "Sardine"], //, "Scallop"
   deep: ["Bluefin-Tuna", "Eel", "Sea-Urchin"]
 };
 const allSpecies = [...new Set([
@@ -80,9 +80,9 @@ const allSpecies = [...new Set([
 const fishConfig = {
   "Mackerel": {speed: 2.5, size: 80, health: 1},
   "Sardine": {speed: 2, size: 50, health: 1},
-  "Salmon": {speed: 2.2, size: 60, health: 5},
+  "Salmon": {speed: 2, size: 60, health: 5},
   "Yellowtail": {speed: 1.8, size: 80, health: 8},
-  "Scallop": {speed: 0.1, size: 40, health: 1},
+  //"Scallop": {speed: 0.1, size: 40, health: 1},
   "Bluefin-Tuna": {speed: 1, size: 150, health: 15},
   "Eel": {speed: 1.5, size: 90, health: 10},
   "Sea-Urchin": {speed: 0, size: 40, health: 1}
@@ -96,7 +96,7 @@ const fishStretch = {
   "Yellowtail": 1.25,
   "Bluefin-Tuna": 1.4,
   "Eel": 1.6,
-  "Scallop": 1.0,
+  //"Scallop": 1.0,
   "Sea-Urchin": 1.0
 };
 
@@ -104,7 +104,7 @@ let fishImages = {};
 // random generate type (can change)
 const AMBIENT_FISH_POOLS = {
   shallow: ["Mackerel", "Sardine"],
-  medium: ["Salmon", "Yellowtail", "Scallop", "Mackerel", "Sardine"],
+  medium: ["Salmon", "Yellowtail", "Mackerel", "Sardine"], // "Scallop"
   deep: []
 };
 const AMBIENT_FISH_TYPES = [...new Set([
@@ -295,7 +295,7 @@ function createOceanGrid() {
 }
 
 function generateFish(depth) {
-  if (random(1) < 0.03) { // can change: The number of fish produced 
+  if (random(1) < 0.01) { // can change: The number of fish produced 
     let fishList = fishPools[depth];
     return random(fishList);
   }

@@ -9,6 +9,8 @@ let menuImages = {};
 let dishImages = {};
 
 // ingredient list -- attributes: name, quality, freshness, image path
+let ingredients = [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]; // Rice has no quality/freshness
+// for test:
 // let ingredients = [
 //   {name: 'Salmon', quality: 5, freshness: 'Day 1', image: 'images/restaurant/ingredients/salmon.png'},
 //   {name: 'Salmon', quality: 5, freshness: 'Day 2', image: 'images/restaurant/ingredients/salmon.png'},

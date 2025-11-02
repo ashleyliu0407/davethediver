@@ -5,13 +5,13 @@ let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
 };
 
-if  (gameData.inventory && gameData.inventory.length > 0) {
+if  (gameData.inventory && gameData.inventory.length > 1) {
   ingredients = gameData.inventory;
   console.log("Loaded inventory from localStorage:", ingredients);
 }
 else {
   gameData.inventory = ingredients;
-  console.log("Initialized inventory in localStorage:", ingredients);
+  console.log("None fish in localStorage:", ingredients);
 }
 
 // sushi_bar.js - FIXED VERSION
