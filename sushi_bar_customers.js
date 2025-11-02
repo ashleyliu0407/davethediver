@@ -4,7 +4,7 @@
 // customer system variables
 let customers = [];
 let customerTimer = 0;
-let customerCreateInterval = 500; // this will be randomized
+let customerCreateInterval = 300; // this will be randomized
 let minCreateInterval = 720; // minimum 12 seconds at 60fps
 let maxCreateInterval = 1200; // maximum 20 seconds at 60fps
 let customerSideImages = {}; // side walking images
@@ -345,14 +345,15 @@ function calculateEarnings(orderedDish, servedDish, servedIngredients) {
   // freshness (avg day number across served ingredients)
   let totalDay = 0, cnt = 0;
   for (const name of (servedIngredients || [])) {
+    if (String(name).trim().toLowerCase() === 'rice') continue; // pass on rice
     const ing = ingredients.find(i => i.name === name);
-    if (ing && ing.freshness) {
-      const m = String(ing.freshness).match(/Day\s+(\d+)/i);
-      if (m) { totalDay += Number(m[1]); cnt++; }
-    }
+    if (!ing) continue; // skip undefined items safely
+    const m = String(ing.freshness || '').match(/Day\s+(\d+)/i);
+    if (m) { totalDay += Number(m[1]); cnt++; }
   }
-  const avgDay = cnt > 0 ? totalDay / cnt : 999;
-  const isFresh = avgDay < 2;  // Day 1 ⇒ fresh
+
+  // If no counted fish, treat as fresh to avoid penalty.
+  const isFresh = (cnt === 0) ? true : (totalDay / cnt) < 2; // Day 1 ⇒ fresh
 
   let base = 0, tip = 0, tipReason = '', displayText = '';
 
@@ -373,7 +374,7 @@ function calculateEarnings(orderedDish, servedDish, servedIngredients) {
     base = Math.round(servedBase * 0.5);
     if (isFresh) {
       tip = 3;
-      tipReason = 'Mix-up, but delicious and fresh.';
+      tipReason = 'Mixed up, but delicious and fresh.';
     } else {
       tip = 0;
       tipReason = 'Not my order, and not very fresh.';
