@@ -463,10 +463,6 @@ function drawScrollablePopup() {
           textSize(16);
           text('Quality: ' + item.quality,   popupX + 150, cardY + 65);
           text('Freshness: ' + item.freshness, popupX + 150, cardY + 95);
-        } else {
-          textSize(16); 
-          text("You cooked a lot of rice.", popupX + 150, cardY + 60);
-        }
         // "place on table" button
         let buttonX = popupX + popupWidth - 180;
         let buttonY = cardY + 25;
@@ -481,6 +477,18 @@ function drawScrollablePopup() {
                              mouseY > throwButtonY && mouseY < throwButtonY + 35;
         drawButton(buttonX, throwButtonY, 140, 35, 'Throw Away',
                    isThrowHovered ? color(200, 80, 80) : color(220, 100, 100));
+        } else {
+          textSize(16); 
+          text("You cooked a lot of rice.", popupX + 150, cardY + 60);
+          // only "place on table" button for rice
+          let buttonX = popupX + popupWidth - 180;
+          let buttonY = cardY + 25;
+          let isButtonHovered = mouseX > buttonX && mouseX < buttonX + 140 &&
+                                mouseY > buttonY && mouseY < buttonY + 35;
+          drawButton(buttonX, buttonY, 140, 35, 'Place on table',
+                    isButtonHovered ? color(80, 180, 80) : color(100, 200, 100));
+          
+        }
       } else {
         // Menu
         textSize(18); text(item.name, popupX + 150, cardY + 25);
