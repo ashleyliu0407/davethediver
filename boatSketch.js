@@ -5,8 +5,6 @@ let gameData = JSON.parse(localStorage.getItem("gameData")) || {
 };
 
 
-
-
 let boat;
 let boatImg; 
 let character;
@@ -34,6 +32,12 @@ let fgX1 = 0;
 let fgX2; 
 let mgX1 = 0; 
 let mgX2; 
+
+
+//For transition screen
+let alpha = 0;
+let fading = false;
+let nextPage = "";
 
 
 
@@ -70,21 +74,9 @@ function setup() {
   character = {
     size: 32,
     x: boat.x,
-    y: 0 // will be set in draw
+    y: 0 
   };
 
-  // // Create unload button
-  // unloadButton = createButton('UNLOAD & SAVE FISH');
-  // unloadButton.size(120, 60);
-  // unloadButton.style("font-size", "15px");
-  // unloadButton.style("color", "#bddcfdff");
-  // unloadButton.style("background-color", "#084387ff");
-  // unloadButton.style("border-radius", "8px");
-  // unloadButton.style("cursor", "pointer");
-  // unloadButton.style("font-family", "Quantico, sans-serif");
-  // unloadButton.position(width/2, height/2);
-  // unloadButton.mousePressed(startDive);
-  
   // Create dive button
   diveButton = createButton('DIVE');
   diveButton.size(80, 60);
@@ -94,9 +86,19 @@ function setup() {
   diveButton.style("border-radius", "8px");
   diveButton.style("cursor", "pointer");
   diveButton.style("font-family", "Quantico, sans-serif");
-  diveButton.position(width/2-200, height/2);
-  diveButton.mousePressed(startDive);
+  diveButton.position(width/2-50, height/2);
+  diveButton.mousePressed(() => {
+    nextPage = "dive.html";
+    fading = true;
+  });
 
+  // //window.location.href = "dive.html";
+  // diveButton.mousePressed(() => {
+  // // navigate back to restaurant screen
+  //   window.location.href = "dive.html";
+  // });
+
+   
     // Create restuarant button
   restaurantButton = createButton('END DAY & GO TO THE RESTAURANT');
   restaurantButton.size(180, 60);
@@ -107,12 +109,18 @@ function setup() {
   restaurantButton.style("cursor", "pointer");
   restaurantButton.style("font-family", "Quantico, sans-serif");
   // restaurantButton.position(width/2, height/2);
-  restaurantButton.position(width/2+150, height/2);
+  restaurantButton.position(width/2+50, height/2);
   // restaurantButton.mousePressed(startDive);
   restaurantButton.mousePressed(() => {
-  // navigate back to restaurant screen
-    window.location.href = "sushi_bar.html";
+    nextPage = "sushi_bar.html";
+    fading = true;
   });
+
+  // restaurantButton.mousePressed(() => {
+  // // navigate back to restaurant screen
+  //   window.location.href = "sushi_bar.html";
+  // });
+
   //home button 
   homeButton = createButton('Back');
   homeButton.size(100, 30);
@@ -133,7 +141,6 @@ function setup() {
 
 function draw() {
   if (!isUnderwater) {
-    
     drawSurfaceScene();
     drawMoneyAndDay();
     
@@ -141,8 +148,17 @@ function draw() {
     drawUnderwaterScene();
   }
 
-  
+  //Smooth transition to pages
+  if (fading) {
+    alpha += 3; 
+    fill(200, alpha);
+    noStroke();
+    rect(0, 0, width, height);
 
+    if (alpha >= 255) {
+      window.location.href = nextPage;
+    }
+  }
 }
 
 function drawSurfaceScene() {
@@ -159,25 +175,19 @@ function drawSurfaceScene() {
   if (fgX2 <= -width) fgX2 = fgX1 + width;
   pop(); 
 
-  
-  
-   //cliffs
+  //cliffs
   image(mgImg, mgX1, 0, width, height);
   // Draw waves using Perlin noise
   drawWaves();
 
- 
-  
   // Draw boat and character
   let boatY = drawBoat();
-  drawCharacter(boatY);
+  // drawCharacter(boatY);
 }
 
 function drawWaves() {
   fill(60, 204, 250, 255);
   noStroke();
- // stroke(0, 119, 190);
-//   strokeWeight(2);
   
   beginShape();
   let xoff = 0; // 2D Perlin noise offset for x
@@ -191,12 +201,10 @@ function drawWaves() {
     vertex(x, y);
     xoff += 0.03;
   }
-  
   // Complete the shape
   vertex(width, height);
   vertex(0, height);
   endShape(CLOSE);
-  
   yoff += 0.004; // Increment y offset for animation
 }
 
@@ -217,7 +225,6 @@ function drawBoat() {
   let boatY = waterlineY - boatHeight + 45; 
 
   image(boatImg, boatX, boatY, boatWidth, boatHeight);
-
   return boatY; // for character placement
 
 
@@ -243,22 +250,8 @@ function drawUnderwaterScene() {
   background(0, 50, 100);
   fill(255, 100, 100);
   rectMode(CORNER);
-  // Character continues at the last y position
-  rect(character.x - character.size/2, character.y, character.size, character.size);
-
 }
 
-function startDive() {
-  if (!isDiving && !isUnderwater) {
-    isDiving = true;
-    diveVelocity = -4;
-  }
-    // Short animation delay
-  setTimeout(() => {
-    window.location.href = "dive.html";
-  }, 800);
-
-}
 
 function drawMoneyAndDay() {
   push();
@@ -285,4 +278,5 @@ function drawMoneyAndDay() {
   
   pop();
 }
+
 

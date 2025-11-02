@@ -43,6 +43,9 @@ let activeProjectiles = [];
 // Weapon settings
 let weaponImages = {};
 
+//instructions
+let showInstructions = true;
+let instructionBoxAlpha = 220;
 
 const weaponConfig = {
   "Harpoon": {
@@ -261,6 +264,28 @@ function draw() {
   resetMatrix();
   drawWeaponUI();
   pop();
+
+  //instructions
+  if (showInstructions) {
+  
+    // Text content
+    noStroke();
+    fill(0);
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    text(
+      "Hey Dave, Ready To Dive?\n\n" +
+      "• Use WASD to swim\n\n" +
+      "• Use RIGHT CLICK (two fingers on mousepad) to AIM \n\n" +
+      "• Press 1 to SHOOT \n\n" +
+      "• Hold SHIFT to swim FASTER \n\n" +
+      "• Collected fish show up in INVENTORY\n\n" +
+      "• Keep an eye out for your OXYGEN or you'll loose your fish...\n\n" +
+      "Click anywhere to start.",
+      width / 2, height / 2
+    );
+  }
+
   
 
 }
@@ -534,14 +559,16 @@ function drawDarknessOverlay() {
 }
 
 
-
-
 // ===============================
 // INPUT HANDLING FOR INVENTORY
 // ===============================
 function mousePressed() {
   //check if clicking inventory
   if (inventory) inventory.handleClick(mouseX, mouseY);
+  if (showInstructions) {
+    showInstructions = false; 
+  }
+
 
 }
 
