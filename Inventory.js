@@ -18,6 +18,21 @@ class Inventory {
 
     }
 
+    // if use extra slots, decrease player speed
+    outOfCapacity() {
+        // if no extra slots used
+        if (this.items.length <= this.capacity) return 1.0; // full speed
+
+        // each extra slot used reduces speed by 20%
+        let usedExtraSlots = this.items.length - this.capacity;
+        let penaltyPerSlot = 0.20;
+        let speedFactor = 1.0 - (usedExtraSlots * penaltyPerSlot);
+
+        // minimum speed factor is 0.2
+        console.log("Speed factor due to encumbrance: " + speedFactor);
+        return max(0.2, speedFactor);
+    }
+
     // update capacity (e.g., when buying backpack upgrade)
     updateCapacity(newCapacity) {
         this.capacity = newCapacity;

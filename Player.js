@@ -45,6 +45,9 @@ class Player {
         this.isSprinting = false; // is shift being pressed
         this.isAiming = false; // implement later
 
+        // add encumbrance factor
+        this.encumbranceFactor = 1.0; // (1.0 = 100% speed)
+
         // control and appearance properties
         this.thrustForce = 3; // base move speed
         this.sprintMultiplier = 1.5; // sprint speed multiplier
@@ -228,6 +231,8 @@ class Player {
         if (this.isSprinting && this.isThrusting) {
             currentThrust *= this.sprintMultiplier;
         }
+
+        currentThrust *= this.encumbranceFactor; // apply encumbrance factor
 
         thrust.normalize(); // make the length be 1, ensure diagonal movement is not faster
         thrust.mult(currentThrust);

@@ -196,6 +196,8 @@ function draw() {
   background(0);
   drawOceanGradient();
 
+  player.encumbranceFactor = inventory.outOfCapacity(); // update encumbrance factor
+
   player.handleInput();
   player.update();
   player.checkEdges();
