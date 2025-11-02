@@ -47,6 +47,10 @@ let weaponImages = {};
 let showInstructions = true;
 let instructionBoxAlpha = 220;
 
+//menu pop up 
+let showMenuPopup = false;
+let menuPopupImg;
+
 const weaponConfig = {
   "Harpoon": {
     type: "DAMAGE_OVER_TIME",
@@ -147,6 +151,9 @@ function preload() {
 
   // load weapon images
   weaponImages.Harpoon = loadImage("images/Harpoon.png");
+
+  //menu image
+  menuPopupImg = loadImage("images/fish/menu.png");
 
 }
 
@@ -259,6 +266,12 @@ function draw() {
   inventory.display();
   pop();
 
+  //drawing menu popup
+  if (showMenuPopup) {
+    drawMenu();
+    
+  }
+
   // draw weapon UI
   push();
   resetMatrix();
@@ -267,7 +280,6 @@ function draw() {
 
   //instructions
   if (showInstructions) {
-  
     // Text content
     noStroke();
     fill(0);
@@ -286,6 +298,14 @@ function draw() {
     );
   }
 
+  //MENU
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(20);
+   text(
+      "Menu",
+      1250, 750
+  );
   
 
 }
@@ -558,6 +578,31 @@ function drawDarknessOverlay() {
   
 }
 
+function drawMenu(){
+  push();
+  resetMatrix();
+  imageMode(CORNER);
+    
+  // adjust position to sit beside inventory
+  let popupX = width - 420; 
+  let popupY = height - 400;
+
+  // semi-transparent background box
+  fill(0, 150);
+  noStroke();
+  rect(popupX - 10, popupY - 10, 350, 280, 10);
+
+  // draw menu image
+  image(menuPopupImg, popupX, popupY, 330, 260);
+
+  // optional label
+  fill(255);
+  textSize(30);
+  textAlign(LEFT, TOP);
+  text("Dave's Menu", popupX + 10, popupY - 50);
+  pop();
+}
+
 
 // ===============================
 // INPUT HANDLING FOR INVENTORY
@@ -567,6 +612,12 @@ function mousePressed() {
   if (inventory) inventory.handleClick(mouseX, mouseY);
   if (showInstructions) {
     showInstructions = false; 
+  }
+
+  //menu
+  
+  if (mouseX > 1210 && mouseX < 1290 && mouseY > 730 && mouseY < 770) {
+    showMenuPopup = !showMenuPopup;
   }
 
 
