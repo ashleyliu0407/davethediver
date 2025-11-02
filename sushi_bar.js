@@ -2,8 +2,17 @@
 let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   day: 1,
   coins: 100,
-  inventory: []
+  inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
 };
+
+if  (gameData.inventory && gameData.inventory.length > 0) {
+  ingredients = gameData.inventory;
+  console.log("Loaded inventory from localStorage:", ingredients);
+}
+else {
+  gameData.inventory = ingredients;
+  console.log("Initialized inventory in localStorage:", ingredients);
+}
 
 // sushi_bar.js - FIXED VERSION
 // array fro icons in the icon bar; icon under mouse; modal that is open
@@ -995,7 +1004,7 @@ function endDay() {
 
   gameData.coins = totalMoney;
   gameData.day = currentDay;
-  localStorage.setItem("gameData", JSON.stringify(gameData));
+
   
   // Reset game state
   gameState = 'preparation';
@@ -1059,6 +1068,9 @@ function endDay() {
       }
     }
   }
+
+  gameData.inventory = ingredients;
+  localStorage.setItem("gameData", JSON.stringify(gameData));
   
   console.log('Day ' + currentDay + ' begins! Total money: $' + totalMoney);
 

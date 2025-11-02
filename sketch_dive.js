@@ -2,6 +2,13 @@
 // OCEAN + FISH SYSTEM
 // ===============================
 
+// get game data from localStorage
+let gameData = JSON.parse(localStorage.getItem("gameData")) || {
+  day: 1,
+  coins: 100,
+  inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
+};
+
 // Grid and ocean settings
 const GRID_ROWS = 30;
 const WORLD_START_X = -4000;
@@ -21,6 +28,7 @@ let inventory;
 let backpackIconImg;
 let currentZoom = 1.0; // the camera's current zoom level
 let isShaking = false; // whether the camera is shaking
+let returnButton;
 
 //player 
 let diverImgs = {};
@@ -75,7 +83,7 @@ const fishConfig = {
   "Salmon": {speed: 2.2, size: 60, health: 5},
   "Yellowtail": {speed: 1.8, size: 80, health: 8},
   "Scallop": {speed: 0.1, size: 40, health: 1},
-  "Bluefin-Tuna": {speed: 3, size: 150, health: 15},
+  "Bluefin-Tuna": {speed: 1, size: 150, health: 15},
   "Eel": {speed: 1.5, size: 90, health: 10},
   "Sea-Urchin": {speed: 0, size: 40, health: 1}
 };
@@ -159,6 +167,19 @@ function setup() {
   // Use Inventory class from external file
   inventory = new Inventory(6, backpackIconImg); // can change
   spawnOxygenBoxes();
+
+  // Create return button
+  returnButton = createButton('Return to Boat');
+  returnButton.position(180, 60);
+  returnButton.style("font-size", "15px");
+  returnButton.style("color", "black");
+  returnButton.style("background-color", "#ff532cff");
+  returnButton.style("border-radius", "8px");
+  returnButton.style("cursor", "pointer");
+  returnButton.style("font-family", "Quantico, sans-serif");
+  returnButton.position(width/2 - 60, 80); // Center top
+  returnButton.mousePressed(returnToBoat);
+  returnButton.hide();
 }
 
 function draw() {
@@ -168,6 +189,9 @@ function draw() {
   player.handleInput();
   player.update();
   player.checkEdges();
+
+  // control the return button
+  player.position.y <= 0 ? returnButton.show() : returnButton.hide();
 
   activateGridFish(); // spawn grid fish
   updateActiveFish();
@@ -271,7 +295,7 @@ function createOceanGrid() {
 }
 
 function generateFish(depth) {
-  if (random(1) < 0.1) { // can change: The number of fish produced 
+  if (random(1) < 0.03) { // can change: The number of fish produced 
     let fishList = fishPools[depth];
     return random(fishList);
   }
@@ -413,7 +437,7 @@ function updateActiveFish() {
   }
 
   // this line now only spawns ambient fish
-  if (random(1) < 0.03) spawnFish();
+  if (random(1) < 0.03) spawnFish(); // can change: spawn rate
 }
 
 function drawActiveFish() {
@@ -706,4 +730,73 @@ function drawWeaponUI() {
   }
 
   pop();
+}
+
+function returnToBoat() {
+
+  // get data again （just in case)
+  let gameData = JSON.parse(localStorage.getItem("gameData")) || {
+    day: 1,
+    coins: 100,
+    inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
+  };
+
+  // define a transfer table
+  const fishDataDefaults = {
+    'Salmon': { name: 'Salmon', image: 'images/restaurant/ingredients/salmon.png' },
+    'Yellowtail': { name: 'Yellowtail', image: 'images/restaurant/ingredients/yellowtail.png' },
+    'Mackerel': { name: 'Mackerel', image: 'images/restaurant/ingredients/mackerel.png' },
+    'Sardine': { name: 'Sardine', image: 'images/restaurant/ingredients/sardine.png' },
+    'Sea-Urchin': { name: 'Sea Urchin', image: 'images/restaurant/ingredients/sea_urchin.png' },
+    'Eel': { name: 'Eel', image: 'images/restaurant/ingredients/eel.png' },
+    'Bluefin-Tuna': { name: 'Bluefin Tuna', image: 'images/restaurant/ingredients/bluefin_tuna.png' }
+    // no Scallop transfer
+  }
+
+  // go through inventory and transfer fish
+  let fishAdded = 0; // for debug: count of fish added
+  let fishStacked = 0; // for debug: count of fish stacked
+
+  for (let caughtFish of inventory.items) {
+    let fishType = caughtFish.type;
+    let defaultData = fishDataDefaults[fishType];
+
+    if (defaultData) { // for debug: only transfer defined fish
+      let targetName = defaultData.name;
+      let targetFreshness = 'Day 1'; // all new catch are fresh
+
+      // check if fish already exists in inventory
+      let existingStack = gameData.inventory.find(item => item.name === targetName && item.freshness === targetFreshness);
+    
+      if (existingStack) {
+        // increment quantity
+        existingStack.quality += 1;
+        fishStacked += 1; // for debug: count of fish stacked
+      }
+      else {
+        // add new entry
+        let newItem = {
+          name: targetName,
+          freshness: targetFreshness,
+          quality: 1,
+          image: defaultData.image
+        };
+        gameData.inventory.push(newItem);
+        fishAdded += 1; // for debug: count of fish added
+      }
+    }
+    else {
+      console.warn(`No transfer data defined for fish type: ${fishType}`);
+    }
+  }
+  console.log(`Transferred to sushi bar: ${fishAdded} new stacks, ${fishStacked} stacked.`); // for debug
+
+  // save back to localStorage
+  localStorage.setItem("gameData", JSON.stringify(gameData));
+
+  // clear inventory
+  inventory.items = [];
+
+  // go back to boat scene
+  window.location.href = "boatStart.html";
 }

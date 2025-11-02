@@ -1,7 +1,7 @@
 let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   day: 1,
   coins: 100,
-  inventory: []
+  inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
 };
 
 
@@ -15,7 +15,7 @@ let coinIcon;
 let diveButton;
 let restaurantButton; 
 let homeButton; 
-let unloadButton; 
+// let unloadButton; 
 
 
 let isUnderwater = false;
@@ -73,17 +73,17 @@ function setup() {
     y: 0 // will be set in draw
   };
 
-  // Create unload button
-  unloadButton = createButton('UNLOAD & SAVE FISH');
-  unloadButton.size(120, 60);
-  unloadButton.style("font-size", "15px");
-  unloadButton.style("color", "#bddcfdff");
-  unloadButton.style("background-color", "#084387ff");
-  unloadButton.style("border-radius", "8px");
-  unloadButton.style("cursor", "pointer");
-  unloadButton.style("font-family", "Quantico, sans-serif");
-  unloadButton.position(width/2, height/2);
-  unloadButton.mousePressed(startDive);
+  // // Create unload button
+  // unloadButton = createButton('UNLOAD & SAVE FISH');
+  // unloadButton.size(120, 60);
+  // unloadButton.style("font-size", "15px");
+  // unloadButton.style("color", "#bddcfdff");
+  // unloadButton.style("background-color", "#084387ff");
+  // unloadButton.style("border-radius", "8px");
+  // unloadButton.style("cursor", "pointer");
+  // unloadButton.style("font-family", "Quantico, sans-serif");
+  // unloadButton.position(width/2, height/2);
+  // unloadButton.mousePressed(startDive);
   
   // Create dive button
   diveButton = createButton('DIVE');
@@ -109,6 +109,10 @@ function setup() {
   // restaurantButton.position(width/2, height/2);
   restaurantButton.position(width/2+150, height/2);
   // restaurantButton.mousePressed(startDive);
+  restaurantButton.mousePressed(() => {
+  // navigate back to restaurant screen
+    window.location.href = "sushi_bar.html";
+  });
   //home button 
   homeButton = createButton('Back');
   homeButton.size(100, 30);
