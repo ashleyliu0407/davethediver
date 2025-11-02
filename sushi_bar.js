@@ -772,24 +772,23 @@ function mousePressed() {
             if (tablePositions[j].ingredient === null) { emptyPosIndex = j; break; }
           }
           if (emptyPosIndex === -1) { console.log('All table positions are full!'); return; }
-          
-          // decrease quality by 1 when placing on table
-          if (ingredients[i].quality !== undefined) {
-            ingredients[i].quality -= 1;
-            console.log(ingredients[i].name + ' quality decreased to ' + ingredients[i].quality);
-            
-            // remove ingredient if quality reaches 0
-            if (ingredients[i].quality <= 0) {
-              console.log(ingredients[i].name + ' quality reached 0 - cannot place on table');
+
+          let item = ingredients[i];
+          let hasQuality = (item.quality !== undefined);
+          let newQuality = hasQuality ? (item.quality - 1) : undefined;
+          tablePositions[emptyPosIndex].ingredient = { name: item.name, isDish: false };
+          console.log('Placed ' + item.name + ' in table position ' + emptyPosIndex);
+
+          // now update inventory
+          if (hasQuality) {
+            if (newQuality <= 0) {
+              console.log(item.name + ' reached quality 0 — removing from inventory');
               ingredients.splice(i, 1);
-              return;
+            } else {
+              ingredients[i].quality = newQuality;
+              console.log(item.name + ' quality decreased to ' + ingredients[i].quality);
             }
           }
-          
-          // place ingredient
-          tablePositions[emptyPosIndex].ingredient = { name: ingredients[i].name, isDish: false };
-          console.log('Placed ' + ingredients[i].name + ' in table position ' + emptyPosIndex);
-          return;
         }
         
         // "throw away" button logic
@@ -1093,9 +1092,7 @@ function endDay() {
   }
 
   gameData.inventory = ingredients;
-  localStorage.setItem("gameData", JSON.stringify(gameData));
-  
+  localStorage.setItem("gameData", JSON.stringify(gameData)); 
   console.log('Day ' + currentDay + ' begins! Total money: $' + totalMoney);
-
   window.location.href = "day.html";
 }
