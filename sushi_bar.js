@@ -710,7 +710,7 @@ function mousePressed() {
       if (pos.ingredient && !pos.ingredient.isDish) {
         let d = dist(mouseX, mouseY, pos.x, pos.y);
         if (d < 50) {
-          draggedIngredient = { name: pos.ingredient.name, fromTablePosition: true, tablePositionIndex: i };
+          draggedIngredient = { name: pos.ingredient.name, freshness: pos.ingredient.freshness, fromTablePosition: true, tablePositionIndex: i };
           pos.ingredient = null;
           return;
         }
@@ -776,7 +776,7 @@ function mousePressed() {
           let item = ingredients[i];
           let hasQuality = (item.quality !== undefined);
           let newQuality = hasQuality ? (item.quality - 1) : undefined;
-          tablePositions[emptyPosIndex].ingredient = { name: item.name, isDish: false };
+          tablePositions[emptyPosIndex].ingredient = { name: item.name, isDish: false, freshness: item.freshness};
           console.log('Placed ' + item.name + ' in table position ' + emptyPosIndex);
 
           // now update inventory
@@ -876,22 +876,45 @@ function mouseReleased() {
       if (ingredientsIcon) {
         let d = dist(mouseX, mouseY, ingredientsIcon.x, ingredientsIcon.y);
         if (d < 80) {
-          // FIXED: Find the ingredient and increase quality
-          let ingredientData = ingredients.find(ing => ing.name === draggedIngredient.name);
-          if (ingredientData) {
-            if (ingredientData.quality !== undefined) {
-              // Cap quality at 3 to prevent it from going too high
-              let oldQuality = ingredientData.quality;
-              ingredientData.quality = Math.min(ingredientData.quality + 1, 3);
-              console.log('RETURNED ' + draggedIngredient.name + ' - quality: ' + oldQuality + ' → ' + ingredientData.quality);
+          // find the ingredient and increase quality
+          const NAME = draggedIngredient.name;
+          const FRESH = draggedIngredient.freshness; // may be undefined for items like Rice
+          // prefer exact (name, freshness) match
+          let idx = ingredients.findIndex(ing => ing.name === NAME && ing.freshness === FRESH);
+
+          // if no exact freshness match exists, re-create it
+          if (idx !== -1) {
+            // exact row exists
+            const item = ingredients[idx];
+            if (typeof item.quality === 'number') {
+              const oldQ = item.quality;
+              item.quality = oldQ + 1; // NO CAP
+              console.log(`RETURNED ${NAME} (${FRESH}) - quality: ${oldQ} → ${item.quality}`);
             } else {
-              console.log('Returned ' + draggedIngredient.name + ' back to ingredients (no quality attribute)');
+              // quality undefined/null → IGNORE (leave unchanged)
+              console.log(`RETURNED ${NAME} (${FRESH}) - quality undefined, ignored`);
             }
           } else {
-            console.log('WARNING: Could not find ' + draggedIngredient.name + ' in ingredients array!');
-            console.log('Current ingredients:', ingredients.map(ing => ing.name).join(', '));
+            // no exact row → create a NEW inventory line (so it shows in modal) at quality 1
+            let sameName = ingredients.find(ing => ing.name === NAME && ing.image);
+            let inferredImage = sameName ? sameName.image
+              : `images/restaurant/ingredients/${NAME.toLowerCase().replace(/\s+/g,'_')}.png`;
+    
+            ingredients.push({
+              name: NAME,
+              freshness: FRESH,
+              quality: 1,           // NEW row starts at quality 1
+              image: inferredImage
+            });
+    
+            console.log(`NO exact match. Added NEW inventory row: ${NAME} (${FRESH}), quality 1`);
           }
-          draggedIngredient = null; 
+    
+          // persist
+          gameData.inventory = ingredients;
+          localStorage.setItem("gameData", JSON.stringify(gameData));
+    
+          draggedIngredient = null;
           return;
         }
       }
@@ -902,7 +925,7 @@ function mouseReleased() {
         let d = dist(mouseX, mouseY, slot.x, slot.y);
         if (d < 50) {
           if (slot.ingredient === null) {
-            slot.ingredient = { name: draggedIngredient.name, tablePositionIndex: draggedIngredient.tablePositionIndex };
+            slot.ingredient = { name: draggedIngredient.name, freshness: draggedIngredient.freshness, tablePositionIndex: draggedIngredient.tablePositionIndex };
             console.log('Placed ' + draggedIngredient.name + ' in tray slot ' + i);
             draggedIngredient = null; return;
           } else {
@@ -1006,7 +1029,7 @@ function cookIngredientsInTray() {
       let ingredient = traySlots[i].ingredient;
       let posIndex = ingredient.tablePositionIndex;
       if (posIndex !== undefined && posIndex >= 0 && posIndex < tablePositions.length) {
-        tablePositions[posIndex].ingredient = { name: ingredient.name, isDish: false };
+        tablePositions[posIndex].ingredient = { name: ingredient.name, isDish: false, freshness: ingredient.freshness};
       }
       traySlots[i].ingredient = null;
     }
