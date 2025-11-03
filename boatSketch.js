@@ -4,6 +4,8 @@ let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
 };
 
+//mbackground music
+let bgMusic;
 
 let boat;
 let boatImg; 
@@ -49,6 +51,10 @@ let bgSpeed=1, fgSpeed=0.8, mgSpeed=0;
 
 
 function preload(){
+
+    //loading abckground sound
+    bgMusic = loadSound('sounds/startandboat/background.wav');
+
     // bgImg = loadImage("images/sky.png");
     bgImg = loadImage("images/sky1.png");
     mgImg = loadImage("images/cliffs.png");
@@ -61,6 +67,12 @@ function preload(){
 
 function setup() {
   createCanvas(1400, 800);
+
+  //start the audio right away
+  userStartAudio().then(() => {
+    bgMusic.loop(); 
+    bgMusic.setVolume(0.6);
+  });
   
 
   //parallax
@@ -153,6 +165,9 @@ function draw() {
 
   //Smooth transition to pages
   if (fading) {
+    if (alpha === 0) {
+      bgMusic.fade(bgMusic.getVolume(), 0, 0.8); 
+    }
     alpha += 3; 
     fill(250, alpha);
     noStroke();

@@ -55,6 +55,13 @@ let menuPopupImg;
 let showInstructionsPopup = false;
 let showInstructionsImg;
 
+//SOUNDS
+//mbackground music
+let bgMusic;
+let fishAim;
+let fishDead;
+let fishShot; 
+
 const weaponConfig = {
   "Harpoon": {
     type: "DAMAGE_OVER_TIME",
@@ -128,6 +135,13 @@ const AMBIENT_FISH_TYPES = [...new Set([
 // LOAD IMAGES
 // ===============================
 function preload() {
+
+  //loading abckground sound
+  bgMusic = loadSound('sounds/diving/underwater.wav');
+  fishAim = loadSound('sounds/diving/fish_aim.wav');
+  fishDead = loadSound('sounds/diving/fish_dead.mp3');
+  fishShot = loadSound('sounds/diving/fish_shot.wav'); 
+
   backpackIconImg = loadImage("images/bag/BagUI.png");
   // boxImages.oxygen = loadImage("images/OxygenBox.png");
   boxImages.oxygen = loadImage("images/oxyg.png");
@@ -171,6 +185,12 @@ function setup() {
   let canvas = createCanvas(1400, 800);
   canvas.elt.oncontextmenu = (e) => e.preventDefault(); // disable right click menu
   createOceanGrid();
+
+  //start the audio right away
+  userStartAudio().then(() => {
+    bgMusic.loop(); 
+    bgMusic.setVolume(0.6);
+  });
 
 
   //Font
