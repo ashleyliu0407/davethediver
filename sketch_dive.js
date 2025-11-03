@@ -367,8 +367,8 @@ function draw() {
   drawOxygenBar();
   pop();
 
-  // if day 1, show oxygen warning
-  if (gameData.day === 1 && player.currentOxygen < player.maxOxygen / 2 && showOxygenWarning) {
+  // show oxygen warning
+  if (player.currentOxygen < player.maxOxygen / 2 && showOxygenWarning) { //gameData.day === 1 && (optional)
     drawOxygenWarning();
   }
 
@@ -807,8 +807,8 @@ function drawMenuItems (){
 
 // INPUT HANDLING FOR INVENTORY
 function mousePressed() {
-  // day 1 oxygen warning
-  if (gameData.day === 1 && player.currentOxygen < player.maxOxygen / 2 && showOxygenWarning) {
+  // if oxygen is low, show warning
+  if (player.currentOxygen < player.maxOxygen / 2 && showOxygenWarning) {  //gameData.day === 1 && (optional)
     showOxygenWarning = false;
     return;
   }
