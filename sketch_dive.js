@@ -426,12 +426,13 @@ function draw() {
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(20);
-   text(
+  text(
       "Guide",
-      1250, 750
+      width-150, height-50
   );
 
-  text("Controls", 1150, 750);
+  //controls 
+  text("Controls", width-260, height-50);
 
   //ITEMS
   fill(255);
@@ -439,7 +440,7 @@ function draw() {
   textSize(20);
    text(
       "Menu Items",
-      1020, 750
+      width-400, height-50
   );
 
  
@@ -807,9 +808,8 @@ function drawMenuItems (){
 }
 
 
-// ===============================
+
 // INPUT HANDLING FOR INVENTORY
-// ===============================
 function mousePressed() {
   // day 1 oxygen warning
   if (gameData.day === 1 && player.currentOxygen < player.maxOxygen / 2 && showOxygenWarning) {
@@ -817,31 +817,16 @@ function mousePressed() {
     return;
   }
 
-  // if instructions are showing, hide them on any click
-  if (showInstructions) {
-    showInstructions = false; 
-    return;
-  }
-
-  // if clicking on menu
-  if (mouseX > 1210 && mouseX < 1290 && mouseY > 730 && mouseY < 770) {
+  //MENU/GUIDE/INSTRUCTIONS POP UPS 
+  if(isTextClicked("Guide", width-150, height-50, 20, 10) && !showInstructionsPopup && !showMenuItems){
     showMenuPopup = !showMenuPopup;
-    return;
   }
-
-  // if clicking on instructions
-  if (mouseX > 1100 && mouseX < 1200 && mouseY > 730 && mouseY < 770) {
-  showInstructionsPopup = !showInstructionsPopup;
-  return;
-}
-
- // if clicking on instructions
-  if (mouseX > 990 && mouseX < 1100 && mouseY > 730 && mouseY < 770) {
-    showMenuPopup = false; 
-    showInstructionsPopup = false;
+  else if(isTextClicked("Controls", width-260, height-50, 20, 10) && !showMenuPopup && !showMenuItems){
+    showInstructionsPopup = !showInstructionsPopup;
+  }
+  else if(isTextClicked("Menu Items", width-400, height-50, 20, 10) && !showMenuPopup && !showInstructionsPopup){
     showMenuItems = !showMenuItems;
-    return;
-}
+  }
 
   // pass mouse event to inventory
   if (inventory) {
@@ -856,6 +841,18 @@ function mousePressed() {
     return;
   }
 }
+
+function isTextClicked(label, x, y, textSizePx = 20, padding = 10) {
+  textSize(textSizePx);
+  let w = textWidth(label);
+  let h = textSizePx;
+  return (mouseX > x - w/2 - padding &&
+          mouseX < x + w/2 + padding &&
+          mouseY > y - h/2 - padding &&
+          mouseY < y + h/2 + padding);
+}
+
+
 
 function keyPressed(event) {
   if (keyCode === ESCAPE && inventory) inventory.toggle();
