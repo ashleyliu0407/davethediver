@@ -60,7 +60,7 @@ let showInstructionsImg;
 let bgMusic;
 let fishAim;
 let fishDead;
-let fishShot; 
+let oxygenSound; 
 
 const weaponConfig = {
   "Knife": {
@@ -147,7 +147,7 @@ function preload() {
   bgMusic = loadSound('sounds/diving/underwater.wav');
   fishAim = loadSound('sounds/diving/fish_aim.wav');
   fishDead = loadSound('sounds/diving/fish_dead.mp3');
-  fishShot = loadSound('sounds/diving/fish_shot.wav'); 
+  oxygenSound = loadSound('sounds/diving/fish_shot2.wav'); 
 
   backpackIconImg = loadImage("images/bag/BagUI.png");
   // boxImages.oxygen = loadImage("images/OxygenBox.png");

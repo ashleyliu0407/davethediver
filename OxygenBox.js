@@ -22,6 +22,11 @@ class OxygenBox extends Box {
 
     collect(player) {
         super.collect(player); // call parent collect method
+        if (oxygenSound) {
+            oxygenSound.setVolume(0.8);
+            oxygenSound.play();
+        }
+        
 
         player.currentOxygen += this.oxygenAmount;
         player.currentOxygen = constrain(player.currentOxygen, 0, player.maxOxygen);

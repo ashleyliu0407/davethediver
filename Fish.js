@@ -129,6 +129,11 @@ class Fish {
         if (this.health <= 0) {
             this.health = 0;
 
+            if (fishDead && !fishDead.isPlaying()) {
+            fishDead.setVolume(0.8);
+            fishDead.play();
+    }
+
             // if dead, pause gif
             if (this.imgLeft) this.imgLeft.pause();
             if (this.imgRight) this.imgRight.pause();

@@ -221,11 +221,18 @@ class Player {
         // check for aiming input (right mouse button)
         //IMAGE: AIMING
         if (mouseIsPressed && mouseButton === RIGHT && !this.harpoonOut) {
+             if (!fishAim.isPlaying()) {
+                fishAim.setVolume(0.6);
+                fishAim.play();
+            }
             this.isAiming = true;
             this.currentImg = this.diverImgs.aim;
         }
         else if (!mouseIsPressed && this.isAiming) { // released all mouse button
             this.isAiming = false;
+            // Fade out the aim sound when aiming stops
+            fishAim.fade(fishAim.getVolume(), 0, 0.3);
+            setTimeout(() => fishAim.stop(), 300);
         }
 
 
