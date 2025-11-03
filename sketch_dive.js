@@ -54,6 +54,10 @@ let instructionBoxAlpha = 220;
 let showMenuPopup = false;
 let menuPopupImg;
 
+//
+let showMenuItems = false;
+let menuItemsImg; 
+
 //instructions pop up 
 let showInstructionsPopup = false;
 let showInstructionsImg;
@@ -184,9 +188,13 @@ function preload() {
   weaponImages.SpearGun = loadImage("images/weapons/SpearGun.png");
   weaponImages.SpearProjectile = loadImage("images/weapons/SpearProjectile.png");
 
-  //menu image
+  //popup images
   menuPopupImg = loadImage("images/fish/menu.png");
   showInstructionsImg = loadImage("images/fish/instructions.png");
+  menuItemsImg= loadImage("images/fish/menu_items.png");
+
+  
+  
 
 }
 
@@ -323,6 +331,11 @@ function draw() {
     drawInstructions();
   }
 
+  if(showMenuItems){
+    drawMenuItems(); 
+
+  }
+
   // draw weapon UI
   push();
   resetMatrix();
@@ -362,6 +375,17 @@ function draw() {
   );
 
   text("Controls", 1150, 750);
+
+  //ITEMS
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(20);
+   text(
+      "Menu Items",
+      1020, 750
+  );
+
+ 
   
 
 }
@@ -698,6 +722,33 @@ function drawInstructions(){
 
 }
 
+function drawMenuItems (){
+  push();
+  resetMatrix();
+  imageMode(CORNER);
+  
+  let popupX = width - 420; 
+  let popupY = height - 400;
+
+  // semi-transparent background box
+  fill(200);
+  noStroke();
+  //makes sure doesn't interfere with guide/menu popup 
+  if(!showMenuPopup && !showInstructionsPopup){
+    // draw menu image
+    image(menuItemsImg, popupX-50, popupY, 430, 290);
+    // optional label
+    fill(255);
+    textSize(30);
+    textAlign(LEFT, TOP);
+    text("Menu Items", popupX-50, popupY - 50);
+    pop();
+  }
+  
+  
+
+}
+
 
 // ===============================
 // INPUT HANDLING FOR INVENTORY
@@ -732,6 +783,14 @@ function mousePressed() {
   if (mouseX > 1100 && mouseX < 1200 && mouseY > 730 && mouseY < 770) {
   showInstructionsPopup = !showInstructionsPopup;
   return;
+}
+
+ // if clicking on instructions
+  if (mouseX > 990 && mouseX < 1100 && mouseY > 730 && mouseY < 770) {
+    showMenuPopup = false; 
+    showInstructionsPopup = false;
+    showMenuItems = !showMenuItems;
+    return;
 }
 
   // pass mouse event to inventory
