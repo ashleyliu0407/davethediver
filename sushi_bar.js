@@ -256,7 +256,7 @@ function drawMoneyAndDay() {
   stroke(0);
   strokeWeight(2);
   textSize(20);
-  text('Day ' + currentDay, 30, 80);
+  text('Day ' + currentDay, 70, 80);
   
   pop();
 }
