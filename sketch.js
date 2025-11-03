@@ -16,7 +16,8 @@ function preload(){
 
 
 function setup(){
-    createCanvas(1400,800);
+    let cnv = createCanvas(1400,800);
+    cnv.parent(document.body);
     //Button
     playButton = createButton("New Game");
     playButton.position(width / 2 - 200, height / 2 + 200); // center the button

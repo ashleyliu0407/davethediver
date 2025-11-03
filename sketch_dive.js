@@ -193,6 +193,7 @@ function preload() {
 // ===============================
 function setup() {
   let canvas = createCanvas(1400, 800);
+  canvas.parent(document.body);
   canvas.elt.oncontextmenu = (e) => e.preventDefault(); // disable right click menu
   createOceanGrid();
 

@@ -35,16 +35,16 @@ function preload(){
 
 
 function setup(){
-    createCanvas(1400,800);
+    let cnv = createCanvas(1400,800);
+    cnv.parent(document.body);
+
     textAlign(CENTER, CENTER);
     textSize(250);
     textFont("Quantico, sans-serif");
     fill(255);
     x = width / 2;
     y = height / 2;
-   
-
-
+  
    
 }
 

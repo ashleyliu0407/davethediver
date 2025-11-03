@@ -66,7 +66,8 @@ function preload(){
 }
 
 function setup() {
-  createCanvas(1400, 800);
+  let cnv = createCanvas(1400,800);
+  cnv.parent(document.body);
 
   //start the audio right away
   userStartAudio().then(() => {
@@ -145,7 +146,7 @@ function setup() {
   homeButton.style("border-radius", "8px");
   homeButton.style("cursor", "pointer");
   homeButton.style("font-family", "Quantico, sans-serif");
-  homeButton.position(20, 20);
+  homeButton.position(80, 30);
   homeButton.mousePressed(() => {
   // navigate back to home screen
     window.location.href = "start.html";

@@ -141,7 +141,8 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1400, 800); // canvas
+  let cnv = createCanvas(1400,800);
+  cnv.parent(document.body);
   
   // set up bgm & sound effects
   if (bgMusic) bgMusic.setVolume(0.08);
