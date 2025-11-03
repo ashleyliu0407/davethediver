@@ -51,6 +51,10 @@ let instructionBoxAlpha = 220;
 let showMenuPopup = false;
 let menuPopupImg;
 
+//instructions pop up 
+let showInstructionsPopup = false;
+let showInstructionsImg;
+
 const weaponConfig = {
   "Harpoon": {
     type: "DAMAGE_OVER_TIME",
@@ -155,6 +159,7 @@ function preload() {
 
   //menu image
   menuPopupImg = loadImage("images/fish/menu.png");
+  showInstructionsImg = loadImage("images/fish/instructions.png");
 
 }
 
@@ -275,6 +280,10 @@ function draw() {
     
   }
 
+  if(showInstructionsPopup){
+    drawInstructions();
+  }
+
   // draw weapon UI
   push();
   resetMatrix();
@@ -311,6 +320,8 @@ function draw() {
       "Guide",
       1250, 750
   );
+
+  text("Controls", 1150, 750);
   
 
 }
@@ -622,6 +633,31 @@ function drawMenu(){
   pop();
 }
 
+function drawInstructions(){
+  push();
+  resetMatrix();
+  imageMode(CORNER);
+  
+  let popupX = width - 420; 
+  let popupY = height - 400;
+
+  // semi-transparent background box
+  fill(200);
+  noStroke();
+  //makes sure doesn't interfere with guide/menu popup 
+  if(!showMenuPopup){
+    // draw menu image
+    image(showInstructionsImg, popupX-50, popupY, 430, 290);
+    // optional label
+    fill(255);
+    textSize(30);
+    textAlign(LEFT, TOP);
+    text("Controls", popupX-50, popupY - 50);
+    pop();
+  }
+
+}
+
 
 // ===============================
 // INPUT HANDLING FOR INVENTORY
@@ -645,6 +681,12 @@ function mousePressed() {
     showMenuPopup = !showMenuPopup;
     return;
   }
+
+  // if clicking on instructions
+  if (mouseX > 1100 && mouseX < 1200 && mouseY > 730 && mouseY < 770) {
+  showInstructionsPopup = !showInstructionsPopup;
+  return;
+}
 
   // pass mouse event to inventory
   if (inventory) inventory.handleClick(mouseX, mouseY);
