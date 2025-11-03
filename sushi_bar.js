@@ -249,14 +249,14 @@ function drawMoneyAndDay() {
   textAlign(LEFT, CENTER);
   textSize(28);
   // text('$' + totalMoney, 70, 40);
-  text('$' + totalMoney, 70, 40);
+  text('$' + totalMoney, 100, 40);
   
   // Day indicator
   fill(255);
   stroke(0);
   strokeWeight(2);
   textSize(20);
-  text('Day ' + currentDay, 70, 80);
+  text('Day ' + currentDay, 100, 80);
   
   pop();
 }
