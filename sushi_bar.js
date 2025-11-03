@@ -542,9 +542,9 @@ function drawScrollablePopup() {
       textAlign(LEFT, CENTER); fill(0);
       if (activePopup.label === 'Ingredients') {
         textSize(20); text(item.name, popupX + 150, cardY + 30);
-        if (item.quality !== undefined && item.freshness !== undefined) {
+        if (item.quantity !== undefined && item.freshness !== undefined) {
           textSize(16);
-          text('Quality: ' + item.quality,   popupX + 150, cardY + 65);
+          text('Quantity: ' + item.quantity,   popupX + 150, cardY + 65);
           text('Freshness: ' + item.freshness, popupX + 150, cardY + 95);
         // "place on table" button
         let buttonX = popupX + popupWidth - 180;
@@ -730,8 +730,8 @@ function drawReadyToServeButton() {
     
     textSize(16);
     text(currentDay === 1 ? 
-         '** TUTORIAL: SET YOUR MENU BEFORE OPENING (REQUIRED) **' : 
-         '** MUST SET YOUR MENU BEFORE OPENING **', 
+         '** TUTORIAL: SET YOUR MENU BEFORE OPENING (REQUIRED); END ANYTIME YOU WANT **' : 
+         '** MUST SET YOUR MENU BEFORE OPENING; END ANYTIME YOU WAN **', 
          buttonX + shakeOffset, warningY);
     
     // Tutorial/tips text (only show if dishes available OR on day 1)
@@ -743,7 +743,7 @@ function drawReadyToServeButton() {
         text('1. Click MENU icon: enable dishes you want to serve', buttonX, buttonY + 80);
         text('2. Click INGREDIENTS icon: place items on table or throw it away', buttonX, buttonY + 100);
         text('3. Drag ingredients to TRAY: click COOK to make dishes and drag finished dishes to plates', buttonX, buttonY + 120);
-        text('4. Click SLEEP icon: advance to the next day, ingredients on table auto-discard', buttonX, buttonY + 140);
+        text('4. Click SLEEP icon: advance to the next day', buttonX, buttonY + 140);
         text('TIP: Match customer orders and freshness matters! Ingredients auto-discard after 3 days. Average freshness < 2 brings more tips.', buttonX, buttonY + 160);
       } else {
         text('tips: select dishes based on your available ingredients', buttonX, buttonY + 75);
@@ -920,8 +920,8 @@ function mousePressed() {
           if (emptyPosIndex === -1) { console.log('All table positions are full!'); return; }
 
           let item = ingredients[i];
-          let hasQuality = (item.quality !== undefined);
-          let newQuality = hasQuality ? (item.quality - 1) : undefined;
+          let hasQuantity = (item.quantity !== undefined);
+          let newQuantity = hasQuantity ? (item.quantity - 1) : undefined;
           tablePositions[emptyPosIndex].ingredient = { name: item.name, isDish: false, freshness: item.freshness};
           console.log('Placed ' + item.name + ' in table position ' + emptyPosIndex);
           if (placeSound) {
@@ -929,33 +929,34 @@ function mousePressed() {
           }
 
           // now update inventory
-          if (hasQuality) {
-            if (newQuality <= 0) {
-              console.log(item.name + ' reached quality 0 — removing from inventory');
+          if (hasQuantity) {
+            if (newQuantity <= 0) {
+              console.log(item.name + ' reached Quantity 0 — removing from inventory');
               ingredients.splice(i, 1);
             } else {
-              ingredients[i].quality = newQuality;
-              console.log(item.name + ' quality decreased to ' + ingredients[i].quality);
+              ingredients[i].quantity = newQuantity;
+              console.log(item.name + ' quantity decreased to ' + ingredients[i].quantity);
             }
           }
+          return;
         }
         
         // "throw away" button logic
         let throwButtonY = cardY + 65;
         if (mouseX > buttonX && mouseX < buttonX + 140 &&
             mouseY > throwButtonY && mouseY < throwButtonY + 35) {
-          // decrease quality by 1
-          if (ingredients[i].quality !== undefined) {
-            ingredients[i].quality -= 1;
-            console.log(ingredients[i].name + ' quality decreased to ' + ingredients[i].quality);
+          // decrease quantity by 1
+          if (ingredients[i].quantity !== undefined) {
+            ingredients[i].quantity -= 1;
+            console.log(ingredients[i].name + ' quantity decreased to ' + ingredients[i].quantity);
             
-            // remove ingredient if quality reaches 0
-            if (ingredients[i].quality <= 0) {
-              console.log(ingredients[i].name + ' quality reached 0 - removing from list');
+            // remove ingredient if quantity reaches 0
+            if (ingredients[i].quantity <= 0) {
+              console.log(ingredients[i].name + ' quantity reached 0 - removing from list');
               ingredients.splice(i, 1);
             }
           } else {
-            console.log(ingredients[i].name + ' has no quality attribute');
+            console.log(ingredients[i].name + ' has no quantity attribute');
           }
           return;
         }
@@ -1028,7 +1029,7 @@ function mouseReleased() {
       if (ingredientsIcon) {
         let d = dist(mouseX, mouseY, ingredientsIcon.x, ingredientsIcon.y);
         if (d < 80) {
-          // find the ingredient and increase quality
+          // find the ingredient and increase quantity
           const NAME = draggedIngredient.name;
           const FRESH = draggedIngredient.freshness; // may be undefined for items like Rice
           // prefer exact (name, freshness) match
@@ -1038,16 +1039,16 @@ function mouseReleased() {
           if (idx !== -1) {
             // exact row exists
             const item = ingredients[idx];
-            if (typeof item.quality === 'number') {
-              const oldQ = item.quality;
-              item.quality = oldQ + 1; // NO CAP
-              console.log(`RETURNED ${NAME} (${FRESH}) - quality: ${oldQ} → ${item.quality}`);
+            if (typeof item.quantity === 'number') {
+              const oldQ = item.quantity;
+              item.quantity = oldQ + 1; // NO CAP
+              console.log(`RETURNED ${NAME} (${FRESH}) - quantity: ${oldQ} → ${item.quantity}`);
             } else {
-              // quality undefined/null → IGNORE (leave unchanged)
-              console.log(`RETURNED ${NAME} (${FRESH}) - quality undefined, ignored`);
+              // quantity undefined/null → IGNORE (leave unchanged)
+              console.log(`RETURNED ${NAME} (${FRESH}) - quantity undefined, ignored`);
             }
           } else {
-            // no exact row → create a NEW inventory line (so it shows in modal) at quality 1
+            // no exact row → create a NEW inventory line (so it shows in modal) at quantity 1
             let sameName = ingredients.find(ing => ing.name === NAME && ing.image);
             let inferredImage = sameName ? sameName.image
               : `images/restaurant/ingredients/${NAME.toLowerCase().replace(/\s+/g,'_')}.png`;
@@ -1055,11 +1056,11 @@ function mouseReleased() {
             ingredients.push({
               name: NAME,
               freshness: FRESH,
-              quality: 1,           // NEW row starts at quality 1
+              quantity: 1,           // NEW row starts at quantity 1
               image: inferredImage
             });
     
-            console.log(`NO exact match. Added NEW inventory row: ${NAME} (${FRESH}), quality 1`);
+            console.log(`NO exact match. Added NEW inventory row: ${NAME} (${FRESH}), quantity 1`);
           }
     
           // persist
@@ -1109,7 +1110,7 @@ function mouseReleased() {
       
       if (nearestSpot !== -1) {
         // found an empty spot - place it there
-        tablePositions[nearestSpot].ingredient = { name: draggedIngredient.name, isDish: false };
+        tablePositions[nearestSpot].ingredient = { name: draggedIngredient.name, isDish: false, freshness: draggedIngredient.freshness };
         console.log('Placed ' + draggedIngredient.name + ' in nearest table position ' + nearestSpot);
         if (placeSound) {
           placeSound.play();
@@ -1165,7 +1166,7 @@ function cookIngredientsInTray() {
     }
   }
   if (ingredientNames.length === 0) {
-    if (failSpound) {
+    if (failSound) {
       failSound.play();
     }
     console.log('No ingredients in tray to cook!'); return; 
@@ -1245,76 +1246,118 @@ function mouseWheel(event) {
   }
 }
 
+// Helper function to return ingredient to inventory
+function returnIngredientToInventory(ingredient, location) {
+  const name = ingredient.name;
+  const freshness = ingredient.freshness;
+  
+  // Find matching ingredient in inventory
+  let idx = ingredients.findIndex(ing => 
+    ing.name === name && ing.freshness === freshness
+  );
+  
+  if (idx !== -1) {
+    // Found it - increase quantity
+    ingredients[idx].quantity++;
+    console.log('Returned ' + name + ' (' + freshness + ') from ' + location + ' → quantity now: ' + ingredients[idx].quantity);
+  } else {
+    // Not found - create new inventory entry
+    let sameName = ingredients.find(ing => ing.name === name);
+    let inferredImage = sameName ? sameName.image 
+      : `images/restaurant/ingredients/${name.toLowerCase().replace(/\s+/g,'_')}.png`;
+    
+    ingredients.push({
+      name: name,
+      freshness: freshness,
+      quantity: 1,
+      image: inferredImage
+    });
+    console.log('Returned ' + name + ' (' + freshness + ') from ' + location + ' → created new entry with quantity 1');
+  }
+}
+
+// Helper function (keep this if you want to use it later)
+function isIngredientInUse(ingredientName, freshness) {
+  // Check table positions
+  for (let pos of tablePositions) {
+    if (pos.ingredient && pos.ingredient.name === ingredientName && pos.ingredient.freshness === freshness) {
+      return true;
+    }
+  }
+  
+  // Check tray slots (only raw ingredients, not dishes)
+  for (let slot of traySlots) {
+    if (slot.ingredient && !slot.ingredient.isDish && 
+        slot.ingredient.name === ingredientName && slot.ingredient.freshness === freshness) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 function endDay() {
   currentDay++;
-
   gameData.coins = totalMoney;
   gameData.day = currentDay;
 
-  
   // Reset game state
   gameState = 'preparation';
   customers = [];
   customerTimer = 0;
   
-  // Clear all plates
+  // Clear all plates (dishes are discarded)
   for (let i = 0; i < plateDishes.length; i++) {
     plateDishes[i] = null;
   }
   
-  // Simply clear table positions (don't modify quality - it's already in ingredients list)
+  // Return ingredients from table to inventory
   for (let i = 0; i < tablePositions.length; i++) {
     if (tablePositions[i].ingredient && !tablePositions[i].ingredient.isDish) {
-      console.log('Returned ' + tablePositions[i].ingredient.name + ' from table to inventory');
+      returnIngredientToInventory(tablePositions[i].ingredient, 'table');
     }
     tablePositions[i].ingredient = null;
   }
   
-  // Clear all tray slots
+  // Return ingredients from tray to inventory
   for (let i = 0; i < traySlots.length; i++) {
     if (traySlots[i].ingredient) {
       if (!traySlots[i].ingredient.isDish) {
-        console.log('Returned ' + traySlots[i].ingredient.name + ' from tray to inventory');
+        returnIngredientToInventory(traySlots[i].ingredient, 'tray');
       } else {
-        console.log('Cleared dish ' + traySlots[i].ingredient.dishName + ' from tray');
+        console.log('Discarded dish: ' + traySlots[i].ingredient.dishName);
       }
     }
     traySlots[i].ingredient = null;
   }
   
-  // Decrease freshness and quality of all ingredients
+  // Age all ingredients and remove expired ones
   for (let i = ingredients.length - 1; i >= 0; i--) {
     let ing = ingredients[i];
     
-    // Update freshness (Day 1 -> Day 2 -> Day 3, etc.)
     if (ing.freshness) {
       let dayMatch = ing.freshness.match(/Day (\d+)/);
       if (dayMatch) {
-        let dayNum = parseInt(dayMatch[1]);
-        dayNum++;
+        let dayNum = parseInt(dayMatch[1]) + 1;
         ing.freshness = 'Day ' + dayNum;
         
-        // Remove ingredient if freshness exceeds Day 3
+        // Remove if too old (Day 4+)
         if (dayNum > 3) {
-          console.log(ing.name + ' exceeded Day 3 freshness and removed from inventory');
+          console.log(ing.name + ' (Day ' + dayNum + ') expired - removed from inventory');
           ingredients.splice(i, 1);
-          continue; // skip quality check since ingredient is already removed
+          continue;
         }
         
-        // decrease quality based on freshness
-        if (ing.quality !== undefined) {
-          ing.quality = max(0, ing.quality - 1);
-          
-          // remove ingredient if quality reaches 0
-          if (ing.quality <= 0) {
-            console.log(ing.name + ' spoiled and removed from inventory');
-            ingredients.splice(i, 1);
-          }
+        // Remove if quantity is 0
+        if (ing.quantity !== undefined && ing.quantity <= 0) {
+          console.log(ing.name + ' has no quantity left - removed from inventory');
+          ingredients.splice(i, 1);
         }
       }
     }
   }
 
+  // Save and navigate
   gameData.inventory = ingredients;
   localStorage.setItem("gameData", JSON.stringify(gameData)); 
   console.log('Day ' + currentDay + ' begins! Total money: $' + totalMoney);
