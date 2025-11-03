@@ -252,7 +252,7 @@ function setup() {
   returnButton.style("border-radius", "8px");
   returnButton.style("cursor", "pointer");
   returnButton.style("font-family", "Quantico, sans-serif");
-  returnButton.position(width/2 - 60, 80); // Center top
+  returnButton.position(width/2 - 135, 80); // Center top
   returnButton.mousePressed(returnToBoat);
   returnButton.hide();
 }
