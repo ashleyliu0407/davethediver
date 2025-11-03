@@ -240,7 +240,7 @@ function drawMoneyAndDay() {
   
   // Coin icon
   imageMode(CORNER);
-  image(coinIcon, 20, 20, 40, 40);
+  image(coinIcon, 80, 20, 40, 40);
   
   // Money amount
   fill(255, 215, 0); // gold color
@@ -249,14 +249,14 @@ function drawMoneyAndDay() {
   textAlign(LEFT, CENTER);
   textSize(28);
   // text('$' + totalMoney, 70, 40);
-  text('$' + totalMoney, 100, 40);
+  text('$' + totalMoney, 130, 40);
   
   // Day indicator
   fill(255);
   stroke(0);
   strokeWeight(2);
   textSize(20);
-  text('Day ' + currentDay, 100, 80);
+  text('Day ' + currentDay, 130, 80);
   
   pop();
 }
