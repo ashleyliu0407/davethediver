@@ -220,7 +220,7 @@ class Player {
         // --------- AIMING LOGIC ---------
         // check for aiming input (right mouse button)
         //IMAGE: AIMING
-        if (mouseIsPressed && mouseButton === RIGHT && !this.harpoonOut) {
+        if (mouseIsPressed && mouseButton === RIGHT && !this.harpoonOut && this.currentWeapon !== "Knife") {
              if (!fishAim.isPlaying()) {
                 fishAim.setVolume(0.6);
                 fishAim.play();
