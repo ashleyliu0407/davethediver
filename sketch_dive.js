@@ -12,6 +12,12 @@ let gameData = JSON.parse(localStorage.getItem("gameData")) || {
 // Oxygen warning
 let showOxygenWarning = true;
 
+// out of oxygen system
+let isPlayerDrowning = false; // Whether the player is currently drowning
+let drownFadeAlpha = 0; // The transparency of the dark secret
+let drownTimer = 2.0; // seconds until change to boat page
+
+
 // Grid and ocean settings
 const GRID_ROWS = 30;
 const WORLD_START_X = -4000;
@@ -53,6 +59,10 @@ let instructionBoxAlpha = 220;
 //menu pop up 
 let showMenuPopup = false;
 let menuPopupImg;
+
+//
+let showMenuItems = false;
+let menuItemsImg; 
 
 //instructions pop up 
 let showInstructionsPopup = false;
@@ -184,9 +194,13 @@ function preload() {
   weaponImages.SpearGun = loadImage("images/weapons/SpearGun.png");
   weaponImages.SpearProjectile = loadImage("images/weapons/SpearProjectile.png");
 
-  //menu image
+  //popup images
   menuPopupImg = loadImage("images/fish/menu.png");
   showInstructionsImg = loadImage("images/fish/instructions.png");
+  menuItemsImg= loadImage("images/fish/menu_items.png");
+
+  
+  
 
 }
 
@@ -233,6 +247,13 @@ function setup() {
 }
 
 function draw() {
+
+  // if oxygen is 0
+  if (isPlayerDrowning) {
+    drawDrownFade();
+    return; // skip rest of draw
+  }
+
   background(0);
   drawOceanGradient();
 
@@ -240,6 +261,25 @@ function draw() {
 
   player.handleInput();
   player.update();
+
+  // check oxygen
+  if (player.currentOxygen <= 0) {
+    isPlayerDrowning = true;
+    drownFadeAlpha = 0;
+    drownTimer = 2.0;
+
+    // lost all fish in inventory
+    inventory.items = [];
+
+    // stop background music
+    if (bgMusic.isPlaying()) {
+      bgMusic.stop();
+    }
+
+    // start drown fade
+    drawDrownFade();
+    return; // skip rest of draw
+  }
   player.checkEdges();
 
   // control the return button
@@ -323,6 +363,11 @@ function draw() {
     drawInstructions();
   }
 
+  if(showMenuItems){
+    drawMenuItems(); 
+
+  }
+
   // draw weapon UI
   push();
   resetMatrix();
@@ -362,6 +407,17 @@ function draw() {
   );
 
   text("Controls", 1150, 750);
+
+  //ITEMS
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(20);
+   text(
+      "Menu Items",
+      1020, 750
+  );
+
+ 
   
 
 }
@@ -698,6 +754,33 @@ function drawInstructions(){
 
 }
 
+function drawMenuItems (){
+  push();
+  resetMatrix();
+  imageMode(CORNER);
+  
+  let popupX = width - 420; 
+  let popupY = height - 400;
+
+  // semi-transparent background box
+  fill(200);
+  noStroke();
+  //makes sure doesn't interfere with guide/menu popup 
+  if(!showMenuPopup && !showInstructionsPopup){
+    // draw menu image
+    image(menuItemsImg, popupX-50, popupY, 430, 290);
+    // optional label
+    fill(255);
+    textSize(30);
+    textAlign(LEFT, TOP);
+    text("Menu Items", popupX-50, popupY - 50);
+    pop();
+  }
+  
+  
+
+}
+
 
 // ===============================
 // INPUT HANDLING FOR INVENTORY
@@ -715,13 +798,6 @@ function mousePressed() {
     return;
   }
 
-  // if right now is aiming, OR if using knife, firefire
-  if (mouseButton === LEFT && (player.isAiming || player.currentWeapon === "Knife")) {
-    player.fire();
-    player.isAiming = false;
-    return;
-  }
-
   // if clicking on menu
   if (mouseX > 1210 && mouseX < 1290 && mouseY > 730 && mouseY < 770) {
     showMenuPopup = !showMenuPopup;
@@ -734,8 +810,26 @@ function mousePressed() {
   return;
 }
 
+ // if clicking on instructions
+  if (mouseX > 990 && mouseX < 1100 && mouseY > 730 && mouseY < 770) {
+    showMenuPopup = false; 
+    showInstructionsPopup = false;
+    showMenuItems = !showMenuItems;
+    return;
+}
+
   // pass mouse event to inventory
-  if (inventory) inventory.handleClick(mouseX, mouseY);
+  if (inventory) {
+    inventory.handleClick(mouseX, mouseY);
+    if (inventory.isOpen) return; // If the inventory is opened or just closed, do not trigger the firing.
+  }
+
+  // if right now is aiming, OR if using knife, firefire
+  if (mouseButton === LEFT && (player.isAiming || player.currentWeapon === "Knife")) {
+    player.fire();
+    player.isAiming = false;
+    return;
+  }
 }
 
 function keyPressed(event) {
@@ -974,6 +1068,42 @@ function drawOxygenWarning() {
   );
 
   pop();
+}
+
+function drawDrownFade() {
+  let dt = deltaTime / 1000; // convert to seconds
+
+  if (drownFadeAlpha < 255) {
+    drownFadeAlpha += 150 * dt; // almost 1.7 seconds to full fade
+    drownFadeAlpha = constrain(drownFadeAlpha, 0, 255);
+  }
+  else {
+    drownTimer -= dt;
+    if (drownTimer <= 0) {
+      // go back to boat scene
+      returnToBoat();
+    }
+  }
+
+  push();
+  resetMatrix();
+
+  // draw black overlay with increasing alpha
+  fill(0, drownFadeAlpha);
+  noStroke();
+  rect(0, 0, width, height);
+
+  // start drowning text after half fade
+  if (drownFadeAlpha >= 100) {
+    let textAlpha = map(drownFadeAlpha, 100, 255, 0, 255);
+    fill(255, 0, 0, textAlpha);
+    textAlign(CENTER, CENTER);
+    textSize(36);
+    text("You have run out of oxygen and lost your catch...", width / 2, height / 2);
+  }
+
+  pop();
+
 }
 
 function returnToBoat() {
