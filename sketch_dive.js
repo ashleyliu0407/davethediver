@@ -803,11 +803,7 @@ function drawMenuItems (){
     pop();
   }
   
-  
-
 }
-
-
 
 // INPUT HANDLING FOR INVENTORY
 function mousePressed() {
@@ -815,6 +811,11 @@ function mousePressed() {
   if (gameData.day === 1 && player.currentOxygen < player.maxOxygen / 2 && showOxygenWarning) {
     showOxygenWarning = false;
     return;
+  }
+
+  if (showInstructions) {
+    showInstructions = false;
+    return; 
   }
 
   //MENU/GUIDE/INSTRUCTIONS POP UPS 

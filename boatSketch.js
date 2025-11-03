@@ -191,7 +191,7 @@ function draw() {
     strokeWeight(2);
     rectMode(LEFT);
     fill(250);
-    rect(900, 60, 440, 200, 20);
+    rect(width/2+180, height/2-300, 440, 200, 20);
   
     // Text content
     noStroke();
@@ -204,7 +204,7 @@ function draw() {
       "• You can dive as many times as you’d like each day.\n\n" +
       "• Your catches are automatically saved after every dive.\n\n" +
       "• Visit the restaurant once you’re done diving!\n\n", 
-      930, 110
+      width/2+200, height/2-250
     );
   }
 
