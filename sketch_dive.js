@@ -163,7 +163,6 @@ function preload() {
   oxygenSound = loadSound('sounds/diving/fish_shot2.wav'); 
 
   backpackIconImg = loadImage("images/bag/BagUI.png");
-  // boxImages.oxygen = loadImage("images/OxygenBox.png");
   boxImages.oxygen = loadImage("images/oxyg.png");
 
   // add fish image loading logic(need to change)
@@ -186,6 +185,9 @@ function preload() {
   diverImgs.aimR = loadImage("images/diver/dave_RG.png");
   diverImgs.shootL = loadImage("images/diver/dave_LS.png");
   diverImgs.shootR = loadImage("images/diver/dave_RS.png");
+
+  diverImgs.bagWarning = loadImage("images/bag/BagWarning.png");
+  diverImgs.bagFull = loadImage("images/bag/BagFull.png");
 
   // load weapon images
   weaponImages.Knife = loadImage("images/weapons/Knife.png");

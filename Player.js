@@ -78,6 +78,9 @@ class Player {
         // player face direction
         this.facingDir = 1;
 
+        // bag warning state
+        this.bagWarningIconImg = null;
+
     }
 
     // a method to apply any force to the player
@@ -127,6 +130,18 @@ class Player {
         // constrain the oxygen level between 0 and maxOxygen
         this.currentOxygen = constrain(this.currentOxygen, 0, this.maxOxygen);
 
+        // bag warning logic
+        if (inventory.items.length === inventory.totalSlots) {
+            // bag is full
+            this.bagWarningIconImg = this.diverImgs.bagFull;
+        }
+        else if (inventory.items.length > inventory.capacity) {
+            // use "red" extra slots
+            this.bagWarningIconImg = this.diverImgs.bagWarning;
+        }
+        else {
+            this.bagWarningIconImg = null;
+        }
 
         // --------- PHYSICS LOGIC ---------
 
@@ -370,6 +385,13 @@ class Player {
         // this.currentImg.width * 0.4, this.currentImg.height * 0.4
         image(this.currentImg, this.position.x, this.position.y, this.currentImg.width * 0.4, this.currentImg.height * 0.4);
 
+        // draw bag warning icon
+        if (this.bagWarningIconImg) {
+            // (this.currentImg.height * 0.4) is the displayed height of the player image
+            let iconY = this.position.y - (this.currentImg.height * 0.4) / 2 - 15; // above the player 30 pixels
+            let iconSize = 40; // can change
+            image(this.bagWarningIconImg, this.position.x, iconY, iconSize, iconSize);
+        }
         // draw knife attack arc
         if (this.knifeAttackTimer > 0) {
             push();
