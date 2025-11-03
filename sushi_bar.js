@@ -132,7 +132,6 @@ function preload() {
     (err) => console.error('Error loading toggleSound:', err)
   );
   
-  
   for (let ingredient of ingredients) {ingredientImages[ingredient.name] = loadImage(ingredient.image);}
   for (let item of menuItems) {menuImages[item.name] = loadImage(item.image);}
   for (let recipeKey in recipes) {let recipe = recipes[recipeKey]; dishImages[recipe.dish] = loadImage(recipe.image);}
@@ -198,8 +197,10 @@ function setup() {
   // Don't create customer at start
 }
 
+
 function draw() {
   background(45, 40, 38); // scene bg
+  
   
   drawMoneyAndDay();      // money counter and day number (top)
   drawCustomers();        // customers walking and ordering
@@ -232,9 +233,7 @@ function draw() {
   drawEarningsMessages();
 }
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-}
+
 
 function drawMoneyAndDay() {
   push();
@@ -249,6 +248,7 @@ function drawMoneyAndDay() {
   strokeWeight(3);
   textAlign(LEFT, CENTER);
   textSize(28);
+  // text('$' + totalMoney, 70, 40);
   text('$' + totalMoney, 70, 40);
   
   // Day indicator
