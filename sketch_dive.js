@@ -219,7 +219,7 @@ function setup() {
   spawnOxygenBoxes();
 
   // Create return button
-  returnButton = createButton('Return & Unload Fish At The Boat');
+  returnButton = createButton('Return & Unload Fish onto the Boat');
   returnButton.position(180, 60);
   returnButton.style("font-size", "15px");
   returnButton.style("color", "black");
