@@ -52,6 +52,9 @@ let coinIcon;
 // earnings display
 let earningsMessages = []; // array of {text, x, y, alpha, timer}
 
+// warining message
+let noMenuShakeTimer = 0;
+
 // load all UI images before setup & draw
 function preload() {
   images.sleep = loadImage('images/restaurant/icons/sleep_icone.png');
@@ -577,6 +580,7 @@ function drawSleepPopup() {
   fill(0); noStroke(); textSize(24); text('No', noButtonX + buttonWidth / 2, buttonY + buttonHeight / 2);
 }
 
+
 function drawReadyToServeButton() {
   if (gameState === 'preparation') {
     push();
@@ -585,6 +589,18 @@ function drawReadyToServeButton() {
       pop();
       return;
     }
+
+    // Check if any menu items are available
+    let hasAvailableDishes = menuItems.some(item => item.available);
+    
+    // Increment shake timer if it's active
+    if (noMenuShakeTimer > 0) {
+      noMenuShakeTimer++;
+      // Stop shaking after 2 seconds (120 frames at 60fps)
+      if (noMenuShakeTimer > 120) {
+        noMenuShakeTimer = 0;
+      }
+    }
     
     let buttonX = width / 2;
     let buttonY = 150;
@@ -592,60 +608,101 @@ function drawReadyToServeButton() {
     let buttonHeight = 60;
     
     let isHovered = mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
-                    mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2
+                    mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2;
     
+    // Dim the button if no dishes available
     noStroke();
-    fill(isHovered ? color(255, 255, 255, 255) : color(255, 255, 255, 200));
+    if (hasAvailableDishes) {
+      fill(isHovered ? 255 : color(255, 255, 255, 200));
+    } else {
+      fill(255, 255, 255, 100); // Dimmed when no dishes
+    }
     textAlign(CENTER, CENTER);
-    textSize(isHovered ? 32 : 28);
+    textSize(isHovered && hasAvailableDishes ? 32 : 28);
     text(currentDay === 1 ? 
          "CLICK HERE TO START YOUR FIRST DAY!" : 
          "CLICK HERE TO OPEN YOUR SUSHI BAR", 
          buttonX, buttonY);
     
-    if (isHovered) {
+    if (isHovered && hasAvailableDishes) {
       stroke(255, 255, 255, 220);
       strokeWeight(3);
       line(buttonX - 200, buttonY + 20, buttonX + 200, buttonY + 20);
     }
     
-    noStroke();
-    fill(255, 255, 255, 180);
+    // Warning text - only shake if timer is active (triggered by failed click)
+    let warningY = buttonY + 50;
+    let shakeOffset = 0;
+    
+    // Apply shake effect only if shake timer is active
+    if (noMenuShakeTimer > 0) {
+      shakeOffset = sin(frameCount * 0.3) * 5;
+    }
+    
+    // Show red color only if no dishes available (whether shaking or not)
+    if (!hasAvailableDishes) {
+      noStroke();
+      fill(255, 50, 50, 255); // RED
+    } else {
+      noStroke();
+      fill(255, 255, 255, 180); // Normal white
+    }
+    
     textSize(16);
     text(currentDay === 1 ? 
          '** TUTORIAL: SET YOUR MENU BEFORE OPENING (REQUIRED) **' : 
          '** MUST SET YOUR MENU BEFORE OPENING **', 
-         buttonX, buttonY + 50);
+         buttonX + shakeOffset, warningY);
     
-    fill(255, 255, 255, 180);
-    textSize(14);
-    
-    if (currentDay === 1) {
-      text('1. Click MENU icon: enable dishes you want to serve', buttonX, buttonY + 80);
-      text('2. Click INGREDIENTS icon: place items on table or throw it away', buttonX, buttonY + 100);
-      text('3. Drag ingredients to TRAY: click COOK to make dishes and drag finished dishes to plates', buttonX, buttonY + 120);
-      text('4. Click SLEEP icon: advance to the next day, ingredients on table auto-discard', buttonX, buttonY + 140);
-      text('TIP: Match customer orders and freshness matters! Ingredients auto-discard after 3 days. Average freshness < 2 brings more tips.', buttonX, buttonY + 160);
-    } else {
-      text('tips: select dishes based on your available ingredients', buttonX, buttonY + 75);
+    // Tutorial/tips text (only show if dishes available OR on day 1)
+    if (hasAvailableDishes || currentDay === 1) {
+      fill(255, 255, 255, 180);
+      textSize(14);
+      
+      if (currentDay === 1) {
+        text('1. Click MENU icon: enable dishes you want to serve', buttonX, buttonY + 80);
+        text('2. Click INGREDIENTS icon: place items on table or throw it away', buttonX, buttonY + 100);
+        text('3. Drag ingredients to TRAY: click COOK to make dishes and drag finished dishes to plates', buttonX, buttonY + 120);
+        text('4. Click SLEEP icon: advance to the next day, ingredients on table auto-discard', buttonX, buttonY + 140);
+        text('TIP: Match customer orders and freshness matters! Ingredients auto-discard after 3 days. Average freshness < 2 brings more tips.', buttonX, buttonY + 160);
+      } else {
+        text('tips: select dishes based on your available ingredients', buttonX, buttonY + 75);
+      }
     }
     
     pop();
     
-    this.readyButtonBounds = {x: buttonX - buttonWidth/2, y: buttonY - buttonHeight/2, w: buttonWidth, h: buttonHeight};
+    this.readyButtonBounds = {
+      x: buttonX - buttonWidth/2, 
+      y: buttonY - buttonHeight/2, 
+      w: buttonWidth, 
+      h: buttonHeight,
+      canOpen: hasAvailableDishes
+    };
   }
 }
 
 function mousePressed() {
   // check for "Ready to Serve" button click during preparation
   if (gameState === 'preparation') {
-    let buttonWidth = 300;
-    let buttonHeight = 80;
-    let buttonX = width / 2 - buttonWidth / 2;
-    let buttonY = 100;
+    let buttonWidth = 220;
+    let buttonHeight = 60;
+    let buttonX = width / 2;
+    let buttonY = 150;
     
-    if (mouseX > buttonX && mouseX < buttonX + buttonWidth &&
-        mouseY > buttonY && mouseY < buttonY + buttonHeight) {
+    if (mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
+        mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2) {
+
+      // Check if any menu items are available
+      let hasAvailableDishes = menuItems.some(item => item.available);
+      
+      if (!hasAvailableDishes) {
+        console.log('Cannot open restaurant - no dishes available on menu!');
+        // Trigger shake effect by starting the timer
+        noMenuShakeTimer = 1;
+        return; // Prevent opening
+      }
+      
       gameState = 'serving';
       console.log('Game started - now serving customers!');
       createCustomer(); // create first customer
