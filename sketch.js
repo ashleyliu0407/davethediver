@@ -20,7 +20,7 @@ function setup(){
     cnv.parent(document.body);
     //Button
     playButton = createButton("New Game");
-    playButton.position(width / 2 - 200, height / 2 + 200); // center the button
+    playButton.position(width / 2 - 180, height / 2 + 200); // center the button
     playButton.size(180, 60);
     playButton.style("font-size", "20px");
     playButton.style("color", "#bddcfdff");
@@ -38,7 +38,7 @@ function setup(){
 
     //Button
     continueButton = createButton("Continue Game");
-    continueButton.position(width / 2 - 10, height / 2 + 200); // center the button
+    continueButton.position(width / 2 + 80, height / 2 + 200); // center the button
     continueButton.size(180, 60);
     continueButton.style("font-size", "20px");
     continueButton.style("color", "#bddcfdff");
