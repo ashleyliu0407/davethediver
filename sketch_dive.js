@@ -302,6 +302,7 @@ function draw() {
     text(
       "Hey Dave, Ready To Dive?\n\n" +
       "• Use WASD to swim\n\n" +
+      "• Press TAB to change weapons\n\n" +
       "• Use RIGHT CLICK (two fingers on mousepad) to AIM \n\n" +
       "• Press 1 to SHOOT \n\n" +
       "• Hold SHIFT to swim FASTER \n\n" +
