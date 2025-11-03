@@ -53,6 +53,13 @@ function updateCustomers() {
     let customer = customers[i];
     
     if (customer.state === 'walking') {
+      // Play walking sound continuously while walking (loop it)
+      if (!customer.walkSoundPlaying && walkSound) {
+        walkSound.loop();
+        customer.walkSoundPlaying = true;
+        console.log('Started walking sound for customer');
+      }
+      
       // check if there's another walking customer in front blocking the path
       let blocked = false;
       for (let other of customers) {
@@ -70,10 +77,17 @@ function updateCustomers() {
         customer.x += 4;
       }
       
-      // reached target position
+      // reached target position - STOP WALKING SOUND
       if (customer.x >= customer.targetX) {
         customer.state = 'turning';
         customer.turnTimer = 0;
+        
+        // Stop walking sound when customer stops walking
+        if (customer.walkSoundPlaying && walkSound) {
+          walkSound.stop();
+          customer.walkSoundPlaying = false;
+          console.log('Stopped walking sound for customer');
+        }
       }
     } else if (customer.state === 'turning') {
       // brief pause while turning
@@ -110,6 +124,11 @@ function updateCustomers() {
 
         customer.state = 'eating';
         customer.eatTimer = 0;
+        
+        // Play eating sound
+        if (eatSound) {
+          eatSound.play();
+        }
       }
     } else if (customer.state === 'eating') {
       customer.dialogue = '...';
@@ -135,6 +154,11 @@ function updateCustomers() {
           totalMoney += customer.earningsInfo.total;
           customer.moneyAdded = true; // flag to prevent double-adding
           console.log('Added $' + customer.earningsInfo.total + ' to total. New total: $' + totalMoney);
+          
+          // Play coin sound when money is added
+          if (coinSound) {
+            coinSound.play();
+          }
         }
         
         // Show floating earnings message
@@ -155,6 +179,13 @@ function updateCustomers() {
       // walk off to the right and fade out
       customer.x += 2;
       customer.alpha -= 5; // gradually fade out
+      
+      // Make sure walking sound is stopped when leaving
+      if (customer.walkSoundPlaying && walkSound) {
+        walkSound.stop();
+        customer.walkSoundPlaying = false;
+      }
+      
       if (customer.alpha <= 0) {
         customers.splice(i, 1); // remove customer
       }
@@ -255,58 +286,59 @@ function drawCustomers() {
 }
 
 function createCustomer() {
-    // choose a customer type that is NOT currently active
-    const availableTypes = getAvailableCustomerTypes();
-    if (availableTypes.length === 0) {
-      console.log('All customer types are already on-screen; skipping spawn.');
-      return;
-    }
-    const customerType = availableTypes[int(random(availableTypes.length))];
-  
-    // filter only available dishes
-    const availableDishes = menuItems.filter(item => item.available);
-    if (availableDishes.length === 0) {
-      console.log('No available dishes! Customer cannot be created.');
-      return;
-    }
-    const randomDishItem = availableDishes[int(random(availableDishes.length))];
-    const randomDish = randomDishItem.name;
-  
-    // track which plates are occupied by customers (count all states so we don't double-seat)
-    const occupiedPlates = new Set(customers.map(c => c.plateIndex));
-    // find free plates
-    const freePlates = [];
-    for (let i = 0; i < 3; i++) {
-      if (!occupiedPlates.has(i)) freePlates.push(i);
-    }
-    if (freePlates.length === 0) {
-      console.log('All 3 plates occupied! No room for new customer.');
-      return;
-    }
-  
-    // choose a free plate
-    const plateIndex = freePlates[int(random(freePlates.length))];
-    const targetX = platePositions[plateIndex].x;
-  
-    const newCustomer = {
-      x: -100, // start off-screen left
-      y: platePositions[plateIndex].y - 140, // stand behind counter
-      targetX: targetX,
-      plateIndex: plateIndex,
-      type: customerType,
-      facing: 'side',
-      state: 'walking', // walking -> turning -> ordering -> eating -> postComment -> leaving
-      order: randomDish,
-      dialogue: null,
-      turnTimer: 0,
-      eatTimer: 0,
-      alpha: 255,
-      earningsInfo: null,
-      moneyAdded: false // flag to prevent double-adding money
-    };
-  
-    customers.push(newCustomer);
-    console.log('New customer (' + customerType + ') ordering: ' + randomDish);
+  // choose a customer type that is NOT currently active
+  const availableTypes = getAvailableCustomerTypes();
+  if (availableTypes.length === 0) {
+    console.log('All customer types are already on-screen; skipping spawn.');
+    return;
+  }
+  const customerType = availableTypes[int(random(availableTypes.length))];
+
+  // filter only available dishes
+  const availableDishes = menuItems.filter(item => item.available);
+  if (availableDishes.length === 0) {
+    console.log('No available dishes! Customer cannot be created.');
+    return;
+  }
+  const randomDishItem = availableDishes[int(random(availableDishes.length))];
+  const randomDish = randomDishItem.name;
+
+  // track which plates are occupied by customers (count all states so we don't double-seat)
+  const occupiedPlates = new Set(customers.map(c => c.plateIndex));
+  // find free plates
+  const freePlates = [];
+  for (let i = 0; i < 3; i++) {
+    if (!occupiedPlates.has(i)) freePlates.push(i);
+  }
+  if (freePlates.length === 0) {
+    console.log('All 3 plates occupied! No room for new customer.');
+    return;
+  }
+
+  // choose a free plate
+  const plateIndex = freePlates[int(random(freePlates.length))];
+  const targetX = platePositions[plateIndex].x;
+
+  const newCustomer = {
+    x: -100, // start off-screen left
+    y: platePositions[plateIndex].y - 140, // stand behind counter
+    targetX: targetX,
+    plateIndex: plateIndex,
+    type: customerType,
+    facing: 'side',
+    state: 'walking', // walking -> turning -> ordering -> eating -> postComment -> leaving
+    order: randomDish,
+    dialogue: null,
+    turnTimer: 0,
+    eatTimer: 0,
+    alpha: 255,
+    earningsInfo: null,
+    moneyAdded: false, // flag to prevent double-adding money
+    walkSoundPlaying: false // flag to track if walk sound is currently playing
+  };
+
+  customers.push(newCustomer);
+  console.log('New customer (' + customerType + ') ordering: ' + randomDish);
 }
   
 function checkCustomerOrder(plateIndex, dishName) {
