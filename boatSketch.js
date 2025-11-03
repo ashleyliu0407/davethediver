@@ -138,7 +138,7 @@ function setup() {
   // });
 
   //home button 
-  homeButton = createButton('Back');
+  homeButton = createButton('Save & Exit');
   homeButton.size(100, 30);
   homeButton.style("font-size", "15px");
   homeButton.style("color", "#084387ff");
