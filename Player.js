@@ -56,7 +56,7 @@ class Player {
         // weapon properties
         // Player owns Harpoon by default
         this.weapons = {
-            "Knife": false,
+            "Knife": true,
             "Harpoon": true,
             "SpearGun": true,
             "Netgun": false
@@ -69,6 +69,14 @@ class Player {
         }; // ammo count
         // harpoon state
         this.harpoonOut = false; // only one harpoon at a time
+
+        // knife attack state
+        this.knifeAttackTimer = 0; // timer for current attack
+        this.knifeCooldownTimer = 0.5; // cooldown time in seconds
+        this.fishHitThisSwing = []; // to track fish hit during current swing
+
+        // player face direction
+        this.facingDir = 1;
 
     }
 
@@ -83,6 +91,14 @@ class Player {
     // this is the main function to update the player's physics
     update() {
         let dt = deltaTime / 1000; // convert milliseconds to seconds
+
+        // knife attack timer update
+        if (this.knifeAttackTimer > 0) {
+            this.knifeAttackTimer -= dt;
+        }
+        if (this.knifeCooldownTimer > 0) {
+            this.knifeCooldownTimer -= dt;
+        }
 
         // stop moving when aiming or harpoon is out
         if (this.isAiming || this.harpoonOut) {
@@ -150,6 +166,45 @@ class Player {
         this.position.add(this.velocity); // position changes by velocity
         this.acceleration.mult(0); // change the acceleration back to 0
 
+        // knife attack
+        if (this.knifeAttackTimer > 0) {
+            // get config
+            let config = weaponConfig["Knife"];
+            let knifeRange = config.range;
+            let knifeDamage = config.damage;
+
+            // check for fish in range
+            for (let fish of activeFish) {
+                if (fish.health <= 0) continue; // skip dead fish
+
+                let d = dist(this.position.x, this.position.y, fish.x, fish.y);
+                // check distance first
+                if (d <= knifeRange && !this.fishHitThisSwing.includes(fish)) {
+                    // check angle second
+                    let fishVector = createVector(fish.x - this.position.x, fish.y - this.position.y);
+                    let angle = fishVector.heading(); // get angle in radians
+                    let inArc = false;
+                    if (this.facingDir === 1) {
+                        // facing right
+                        if (angle >= -PI/4 && angle <= PI/4) {
+                            inArc = true;
+                        }
+                    } else {
+                        // facing left
+                        if (angle >= PI * 0.75 || angle <= PI * -0.75) {
+                            inArc = true;
+                        }
+                    }
+
+                    // hit the fish
+                    if (inArc) {
+                        fish.takeDamage(knifeDamage);
+                        this.fishHitThisSwing.push(fish); // add to hit list
+                    }
+                }
+            }
+        }
+
         // if the player is not thrusting and velocity is very small, stop completely
         if (!this.isThrusting && !this.harpoonOut && !this.isAiming && this.velocity.mag() < STOPPING_THRESHOLD) {
             this.velocity.mult(0);
@@ -199,12 +254,14 @@ class Player {
             thrust.x = -1; // direction only
             this.isThrusting = true;
             moving = true;
+            this.facingDir = -1;
         }
         if (keyIsDown(68)) { // "d"
             this.currentImg = this.diverImgs.swimRight;// FOR PLAYER - RIGHT
             thrust.x = 1;
             this.isThrusting = true;
             moving = true;
+            this.facingDir = 1;
         }
         if (keyIsDown(87)) { // "w"
             thrust.y = -1;
@@ -237,6 +294,23 @@ class Player {
 
     // fire method for shooting projectiles
     fire() {
+
+        // --- knife specific logic ---
+        if (this.currentWeapon === "Knife") {
+            // check cooldown and attack time
+            if (this.knifeCooldownTimer > 0) {
+                return; // still in cooldown
+            }
+
+            // get config
+            let config = weaponConfig["Knife"];
+            this.knifeAttackTimer = config.attackTime; // set attack timer
+            this.knifeCooldownTimer = config.cooldown; // reset cooldown timer
+            this.fishHitThisSwing = []; // reset hit list
+            return; // knife does not shoot projectile
+        }
+
+
         // we can't fire if not aiming
         if (!this.isAiming) return;
 
@@ -289,6 +363,33 @@ class Player {
         // this.currentImg.width * 0.4, this.currentImg.height * 0.4
         image(this.currentImg, this.position.x, this.position.y, this.currentImg.width * 0.4, this.currentImg.height * 0.4);
 
+        // draw knife attack arc
+        if (this.knifeAttackTimer > 0) {
+            push();
+
+            let config = weaponConfig["Knife"];
+
+            // Fade-out effect
+            let effect = map(this.knifeAttackTimer, config.attackTime, 0, 255, 0);
+            stroke(255, 255, 255, effect);
+            
+            strokeWeight(5);
+            noFill();
+
+            translate(this.position.x, this.position.y);
+
+            let arcRadius = this.radius + config.range -20; // can change
+            if (this.facingDir === 1) {
+                arc(0, 0, arcRadius * 2, arcRadius * 2, -PI / 4, PI / 4); // form -45 degrees to 45 degrees
+            }
+            else {
+                arc(0, 0, arcRadius * 2, arcRadius * 2, PI * 0.75, PI * -0.75); // from 225 degrees to 135 degrees
+            }
+
+            pop();
+
+
+        }
         // draw aiming line
         if (this.isAiming) {
             let worldMouseX = mouseX - width / 2 + this.position.x;
