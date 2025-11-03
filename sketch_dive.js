@@ -9,6 +9,9 @@ let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
 };
 
+// Oxygen warning
+let showOxygenWarning = true;
+
 // Grid and ocean settings
 const GRID_ROWS = 30;
 const WORLD_START_X = -4000;
@@ -298,6 +301,11 @@ function draw() {
   drawOxygenBar();
   pop();
 
+  // if day 1, show oxygen warning
+  if (gameData.day === 1 && player.currentOxygen < player.maxOxygen / 2 && showOxygenWarning) {
+    drawOxygenWarning();
+  }
+
   //Draw inventory 
   push();
   resetMatrix();
@@ -378,7 +386,7 @@ function createOceanGrid() {
         y: r * CELL_HEIGHT,
         depth: depthLevel,
         fish: fishType,
-        hasOxygenTank: random(1) < 0.03, // can change: 3% chance to have oxygen tank
+        hasOxygenTank: random(1) < 0.005, // can change: 0.5% chance to have oxygen tank
         isActive: false // whether the fish display
       });
     }
@@ -694,6 +702,12 @@ function drawInstructions(){
 // INPUT HANDLING FOR INVENTORY
 // ===============================
 function mousePressed() {
+  // day 1 oxygen warning
+  if (gameData.day === 1 && player.currentOxygen < player.maxOxygen / 2 && showOxygenWarning) {
+    showOxygenWarning = false;
+    return;
+  }
+
   // if instructions are showing, hide them on any click
   if (showInstructions) {
     showInstructions = false; 
@@ -769,7 +783,12 @@ function drawOxygenBar() {
 
   // Border
   noFill();
-  stroke(255);
+  if (player.currentOxygen < player.maxOxygen /2) {
+    stroke(255, 0, 0); // red border if low oxygen
+  }
+  else {
+    stroke(255);
+  }
   strokeWeight(1.8);
   rect(20, 30, 220, 28, 6);
 
@@ -925,6 +944,33 @@ function drawWeaponUI() {
   else  {
     text(firearm, slot3X + slotSize / 2, startY + slotSize / 2);
   }
+
+  pop();
+}
+
+// draw oxygen warning
+function drawOxygenWarning() {
+  push();
+  resetMatrix();
+  rectMode(CENTER);
+  textAlign(CENTER, CENTER);
+
+  // draw a black background box
+  fill(0, 180);
+  noStroke();
+  rect(width / 2, height / 2, width * 0.7, 200, 10);
+
+  // draw the warning text
+  fill(255, 50, 50);
+  textSize(24);
+  text(
+    "Warning: Low Oxygen!\n\n" +
+    "Return to the surface or touch bubbles to get oxygen.\n" +
+    "If your oxygen reaches 0, you will lose all your ingredients.\n\n" +
+    "Click anywhere to hide this message",
+    width / 2, 
+    height / 2
+  );
 
   pop();
 }
