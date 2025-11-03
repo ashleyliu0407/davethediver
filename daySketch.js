@@ -35,7 +35,9 @@ function preload(){
 
 
 function setup(){
-    let cnv = createCanvas(1400,800);
+    // let cnv = createCanvas(1400,800);
+    // cnv.parent(document.body);
+    let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent(document.body);
 
     textAlign(CENTER, CENTER);

@@ -66,7 +66,9 @@ function preload(){
 }
 
 function setup() {
-  let cnv = createCanvas(1400,800);
+  // let cnv = createCanvas(1400,800);
+  // cnv.parent(document.body);
+  let cnv = createCanvas(windowWidth, windowHeight);
   cnv.parent(document.body);
 
   //start the audio right away
@@ -146,7 +148,7 @@ function setup() {
   homeButton.style("border-radius", "8px");
   homeButton.style("cursor", "pointer");
   homeButton.style("font-family", "Quantico, sans-serif");
-  homeButton.position(80, 30);
+  homeButton.position(30, 30);
   homeButton.mousePressed(() => {
   // navigate back to home screen
     window.location.href = "start.html";
@@ -206,6 +208,10 @@ function draw() {
     );
   }
 
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }
 
 function mousePressed(){
@@ -330,6 +336,14 @@ function drawMoneyAndDay() {
   text('Day ' + gameData.day, 30, 140);
   
   pop();
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  image(backgroundImg, 0, 0, windowWidth, windowHeight);
+
+  playButton.position(width / 2 - 220, height / 2 + height * 0.25);
+  continueButton.position(width / 2 + 40, height / 2 + height * 0.25);
 }
 
 

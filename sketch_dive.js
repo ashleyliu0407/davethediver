@@ -211,8 +211,9 @@ function preload() {
 // SETUP + DRAW LOOP
 // ===============================
 function setup() {
-  let canvas = createCanvas(1400, 800);
+  let canvas= createCanvas(windowWidth, windowHeight);
   canvas.parent(document.body);
+
   canvas.elt.oncontextmenu = (e) => e.preventDefault(); // disable right click menu
   createOceanGrid();
 
@@ -249,6 +250,8 @@ function setup() {
 }
 
 function draw() {
+
+  windowResized();
 
   // if oxygen is 0
   if (isPlayerDrowning) {
@@ -329,6 +332,11 @@ function draw() {
     if (box.isCollected) {
       activeBoxes.splice(i, 1);
     }
+  }
+
+  function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+    
   }
 
 

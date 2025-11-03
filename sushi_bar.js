@@ -232,6 +232,10 @@ function draw() {
   drawEarningsMessages();
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
 function drawMoneyAndDay() {
   push();
   
