@@ -69,6 +69,11 @@ class HarpoonProjectile extends Projectile {
 
             if (this.deathStruggleTimer <= 0) {
                 this.state = "RETRACTING"; // struggle finished, start retracting
+
+                // stop sound
+                if (retrieveSound && retrieveSound.isLooping()) {
+                    retrieveSound.stop();
+                }
             }
 
         }
@@ -106,11 +111,21 @@ class HarpoonProjectile extends Projectile {
 
             // hurt the fish immediately
             fish.takeDamage(this.damage);
+
+            // play attach sound
+            if (retrieveSound && !retrieveSound.isLooping()) {
+                retrieveSound.loop();
+            }
         }
     }
 
     // called when fish escapes
     detach() {
+        // stop sound
+        if (retrieveSound && retrieveSound.isLooping()) {
+            retrieveSound.stop();
+        }
+        
         if (this.targetFish) {
             this.targetFish.isAttached = false;
             this.targetFish.attachedHarpoon = null;

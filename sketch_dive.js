@@ -74,6 +74,10 @@ let bgMusic;
 let fishAim;
 let fishDead;
 let oxygenSound; 
+let drownSound;
+let fireSound;
+let knifeSound;
+let retrieveSound;
 
 const weaponConfig = {
   "Knife": {
@@ -161,6 +165,10 @@ function preload() {
   fishAim = loadSound('sounds/diving/fish_aim.wav');
   fishDead = loadSound('sounds/diving/fish_dead.mp3');
   oxygenSound = loadSound('sounds/diving/fish_shot2.wav'); 
+  drownSound = loadSound('sounds/diving/out_of_oxygen.mp3');
+  fireSound = loadSound('sounds/diving/fire.mp3');
+  knifeSound = loadSound('sounds/diving/knife.mp3');
+  retrieveSound = loadSound('sounds/diving/retrieve_harpoon.mp3');
 
   backpackIconImg = loadImage("images/bag/BagUI.png");
   boxImages.oxygen = loadImage("images/oxyg.png");
@@ -269,6 +277,13 @@ function draw() {
 
   // check oxygen
   if (player.currentOxygen <= 0) {
+
+    // play drown sound
+    if (drownSound && !drownSound.isPlaying()) {
+      drownSound.play();
+    }
+
+    // set drowning state
     isPlayerDrowning = true;
     drownFadeAlpha = 0;
     drownTimer = 2.0;
