@@ -5,23 +5,10 @@
 let images = {};
 let ingredientImages = {};
 let menuImages = {};
-// let reservationImages = {};
 let dishImages = {};
 
-// ingredient list -- attributes: name, quality, freshness, image path
-let ingredients = [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]; // Rice has no quality/freshness
-// for test:
-// let ingredients = [
-//   {name: 'Salmon', quality: 5, freshness: 'Day 1', image: 'images/restaurant/ingredients/salmon.png'},
-//   {name: 'Salmon', quality: 5, freshness: 'Day 2', image: 'images/restaurant/ingredients/salmon.png'},
-//   {name: 'Yellowtail', quality: 4, freshness: 'Day 1', image: 'images/restaurant/ingredients/yellowtail.png'},
-//   {name: 'Mackerel', quality: 5, freshness: 'Day 1', image: 'images/restaurant/ingredients/mackerel.png'},
-//   {name: 'Sardine', quality: 3, freshness: 'Day 1', image: 'images/restaurant/ingredients/sardine.png'},
-//   {name: 'Sea Urchin', quality: 5, freshness: 'Day 1', image: 'images/restaurant/ingredients/sea_urchin.png'},
-//   {name: 'Eel', quality: 4, freshness: 'Day 1', image: 'images/restaurant/ingredients/eel.png'},
-//   {name: 'Bluefin Tuna', quality: 5, freshness: 'Day 1', image: 'images/restaurant/ingredients/bluefin_tuna.png'},
-//   {name: 'Rice', image: 'images/restaurant/ingredients/rice.png'} // Rice has no quality/freshness
-// ];
+// ingredient list -- attributes: name, quantity, freshness, image path
+let ingredients = [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}];
 
 // menu items -- dishes to display on menu
 let menuItems = [

@@ -1144,7 +1144,7 @@ function returnToBoat() {
     
       if (existingStack) {
         // increment quantity
-        existingStack.quality += 1;
+        existingStack.quantity += 1;
         fishStacked += 1; // for debug: count of fish stacked
       }
       else {
@@ -1152,7 +1152,7 @@ function returnToBoat() {
         let newItem = {
           name: targetName,
           freshness: targetFreshness,
-          quality: 1,
+          quantity: 1,
           image: defaultData.image
         };
         gameData.inventory.push(newItem);
