@@ -63,6 +63,13 @@ let fishDead;
 let fishShot; 
 
 const weaponConfig = {
+  "Knife": {
+    type: "MELEE",
+    damage: 3,
+    range: 130,  // Melee range
+    attackTime: 0.2, // Duration of attack determination
+    cooldown: 0.5 // Attack cooldown
+  },
   "Harpoon": {
     type: "DAMAGE_OVER_TIME",
     damage: 1,
@@ -168,7 +175,10 @@ function preload() {
   diverImgs.shootR = loadImage("images/diver/dave_RS.png");
 
   // load weapon images
-  weaponImages.Harpoon = loadImage("images/Harpoon.png");
+  weaponImages.Knife = loadImage("images/weapons/Knife.png");
+  weaponImages.Harpoon = loadImage("images/weapons/Harpoon.png");
+  weaponImages.HarpoonHead = loadImage("images/weapons/HarpoonHead.png");
+  weaponImages.SpearGun = loadImage("images/weapons/SpearGun.png");
   weaponImages.SpearProjectile = loadImage("images/weapons/SpearProjectile.png");
 
   //menu image
@@ -690,8 +700,8 @@ function mousePressed() {
     return;
   }
 
-  // if right now is aiming, fire
-  if (mouseButton === LEFT && player.isAiming) {
+  // if right now is aiming, OR if using knife, firefire
+  if (mouseButton === LEFT && (player.isAiming || player.currentWeapon === "Knife")) {
     player.fire();
     player.isAiming = false;
     return;
@@ -730,7 +740,7 @@ function keyPressed(event) {
   }
 
   if (keyCode === 49) { // '1' key
-    if (player.isAiming) {
+    if (player.isAiming || player.currentWeapon === "Knife") {
       player.fire();
       player.isAiming = false;
     }
@@ -817,7 +827,7 @@ function drawWeaponUI() {
   let displayMeleeImg = null;
   if (player.weapons["Knife"]) {
     meleeWeapon = "Knife";
-    // displayMeleeImg = weaponImages.Knife;
+    displayMeleeImg = weaponImages.Knife;
   }
 
   // 2. Harpoon
@@ -833,7 +843,7 @@ function drawWeaponUI() {
   let displayFirearmImg = null;
   if (player.weapons["SpearGun"]) {
     firearm = "SpearGun";
-    // displayFirearmImg = weaponImages.SpearGun;
+    displayFirearmImg = weaponImages.SpearGun;
   } else if (player.weapons["Netgun"]) {
     firearm = "Netgun";
     // displayFirearmImg = weaponImages.Netgun;

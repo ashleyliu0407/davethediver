@@ -1,3 +1,9 @@
+// sushi_bar.js
+// array fro icons in the icon bar; icon under mouse; modal that is open
+let icons = [];
+let hoveredIcon = null;
+let activePopup = null;
+
 // local storage
 let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   day: 1,
@@ -14,11 +20,17 @@ else {
   console.log("None fish in localStorage:", ingredients);
 }
 
-// sushi_bar.js - FIXED VERSION
-// array fro icons in the icon bar; icon under mouse; modal that is open
-let icons = [];
-let hoveredIcon = null;
-let activePopup = null;
+//bgm and sound effects
+let bgMusic;
+let musicStarted = false;
+let walkSound;
+let eatSound;
+let errorSound;
+let failSound;
+let coinSound;
+let placeSound;
+let cookSound;
+let toggleSound;
 
 // drag state for ingredient
 let draggedIngredient = null;
@@ -56,18 +68,73 @@ let earningsMessages = []; // array of {text, x, y, alpha, timer}
 let noMenuShakeTimer = 0;
 
 // load all UI images before setup & draw
+// load all UI images before setup & draw
 function preload() {
   images.sleep = loadImage('images/restaurant/icons/sleep_icone.png');
-  // images.reservation = loadImage('images/reservation_icon.png');
   images.ingredient = loadImage('images/restaurant/icons/ingredient_icon.png');
   images.menu = loadImage('images/restaurant/icons/menu_icon.png');
   images.plate = loadImage('images/restaurant/decorations/plate.png');
   images.tray = loadImage('images/restaurant/decorations/tray.png');
-  coinIcon = loadImage('images/restaurant/decorations/coin.png'); // add coin icon image
+  coinIcon = loadImage('images/restaurant/decorations/coin.png');
+  
+  // load background music and sound effects
+  bgMusic = loadSound(
+    'sounds/restaurant/restaurant_bgm.mp3',
+    () => console.log('Background music loaded!'),
+    (err) => console.error('Error loading bgMusic:', err)
+  );
+  
+  walkSound = loadSound(
+    'sounds/restaurant/walk.mp3',
+    () => console.log('Walk sound loaded!'),
+    (err) => console.error('Error loading walkSound:', err)
+  );
+  
+  eatSound = loadSound(
+    'sounds/restaurant/eat.mp3',
+    () => console.log('Eat sound loaded!'),
+    (err) => console.error('Error loading eatSound:', err)
+  );
+  
+  errorSound = loadSound(
+    'sounds/restaurant/error.mp3',
+    () => console.log('Error sound loaded!'),
+    (err) => console.error('Error loading errorSound:', err)
+  );
+  
+  coinSound = loadSound(
+    'sounds/restaurant/coin.mp3',
+    () => console.log('Coin sound loaded!'),
+    (err) => console.error('Error loading coinSound:', err)
+  );
+
+  failSound = loadSound(
+    'sounds/restaurant/fail.mp3',
+    () => console.log('Fail sound loaded!'),
+    (err) => console.error('Error loading failSound:', err)
+  );
+  
+  placeSound = loadSound(
+    'sounds/restaurant/place.mp3',
+    () => console.log('Place sound loaded!'),
+    (err) => console.error('Error loading placeSound:', err)
+  );
+  
+  cookSound = loadSound(
+    'sounds/restaurant/cook.mp3',
+    () => console.log('Cook sound loaded!'),
+    (err) => console.error('Error loading cookSound:', err)
+  );
+
+  toggleSound = loadSound(
+    'sounds/restaurant/toggle.mp3',
+    () => console.log('Toggle sound loaded!'),
+    (err) => console.error('Error loading toggleSound:', err)
+  );
+  
   
   for (let ingredient of ingredients) {ingredientImages[ingredient.name] = loadImage(ingredient.image);}
   for (let item of menuItems) {menuImages[item.name] = loadImage(item.image);}
-  // for (let reservation of reservations) {reservationImages[reservation.name] = loadImage(reservation.image);}
   for (let recipeKey in recipes) {let recipe = recipes[recipeKey]; dishImages[recipe.dish] = loadImage(recipe.image);}
   
   loadCustomerImages();
@@ -75,6 +142,18 @@ function preload() {
 
 function setup() {
   createCanvas(1400, 800); // canvas
+  
+  // set up bgm & sound effects
+  if (bgMusic) bgMusic.setVolume(0.08);
+  if (walkSound) walkSound.setVolume(1.8);
+  if (eatSound) eatSound.setVolume(0.5);
+  if (errorSound) errorSound.setVolume(0.6);
+  if (coinSound) coinSound.setVolume(0.5);
+  if (placeSound) placeSound.setVolume(0.4);
+  if (cookSound) cookSound.setVolume(1.2);
+  if (failSound) placeSound.setVolume(0.4);
+  if (toggleSound) toggleSound.setVolume(0.5)
+
 
   // icon bar: position, label, sprite
   icons = [
@@ -684,6 +763,12 @@ function drawReadyToServeButton() {
 
 function mousePressed() {
   // check for "Ready to Serve" button click during preparation
+  if (!musicStarted && bgMusic) {
+    bgMusic.loop();
+    musicStarted = true;
+    console.log('Background music started!');
+  }
+
   if (gameState === 'preparation') {
     let buttonWidth = 220;
     let buttonHeight = 60;
@@ -700,6 +785,9 @@ function mousePressed() {
         console.log('Cannot open restaurant - no dishes available on menu!');
         // Trigger shake effect by starting the timer
         noMenuShakeTimer = 1;
+        if (errorSound) {
+          errorSound.play();
+        }
         return; // Prevent opening
       }
       
@@ -835,6 +923,9 @@ function mousePressed() {
           let newQuality = hasQuality ? (item.quality - 1) : undefined;
           tablePositions[emptyPosIndex].ingredient = { name: item.name, isDish: false, freshness: item.freshness};
           console.log('Placed ' + item.name + ' in table position ' + emptyPosIndex);
+          if (placeSound) {
+            placeSound.play();
+          }
 
           // now update inventory
           if (hasQuality) {
@@ -880,6 +971,9 @@ function mousePressed() {
         let toggleX = popupX + popupWidth - 180;
         if (mouseX > toggleX && mouseX < toggleX + 140 &&
             mouseY > toggleY && mouseY < toggleY + 40) {
+          if (toggleSound) {
+            toggleSound.play();
+          }
           menuItems[i].available = !menuItems[i].available;
           console.log('Toggled ' + menuItems[i].name + ' to ' + 
                       (menuItems[i].available ? 'available' : 'unavailable'));
@@ -984,6 +1078,9 @@ function mouseReleased() {
           if (slot.ingredient === null) {
             slot.ingredient = { name: draggedIngredient.name, freshness: draggedIngredient.freshness, tablePositionIndex: draggedIngredient.tablePositionIndex };
             console.log('Placed ' + draggedIngredient.name + ' in tray slot ' + i);
+            if (placeSound) {
+              placeSound.play();
+            }
             draggedIngredient = null; return;
           } else {
             console.log('Slot already occupied!');
@@ -1013,6 +1110,9 @@ function mouseReleased() {
         // found an empty spot - place it there
         tablePositions[nearestSpot].ingredient = { name: draggedIngredient.name, isDish: false };
         console.log('Placed ' + draggedIngredient.name + ' in nearest table position ' + nearestSpot);
+        if (placeSound) {
+          placeSound.play();
+        }
       } else {
         // no empty spots - return to tray
         if (draggedIngredient.fromTraySlot && draggedIngredient.traySlotIndex !== undefined) {
@@ -1039,6 +1139,9 @@ function mouseReleased() {
               };
               console.log('Returned ' + draggedIngredient.name + ' to tray slot ' + emptyTraySlot);
             } else {
+              if (failSound) {
+                failSound.play();
+              }
               console.log('ERROR: Ingredient ' + draggedIngredient.name + ' lost - no space anywhere!');
             }
           }
@@ -1060,7 +1163,12 @@ function cookIngredientsInTray() {
       filledSlots.push(i);
     }
   }
-  if (ingredientNames.length === 0) { console.log('No ingredients in tray to cook!'); return; }
+  if (ingredientNames.length === 0) {
+    if (failSpound) {
+      failSound.play();
+    }
+    console.log('No ingredients in tray to cook!'); return; 
+  }
   
   // sort names to normalize key and lookup recipe
   ingredientNames.sort();
@@ -1070,6 +1178,9 @@ function cookIngredientsInTray() {
   if (matchedRecipe) {
     // success: clear tray and put dish in middle slot
     console.log('Cooked: ' + matchedRecipe.dish + ' from ' + ingredientNames.join(', '));
+    if (cookSound) {
+      cookSound.play();
+    }
     for (let i of filledSlots) traySlots[i].ingredient = null;
     let middleSlot = 2;
     traySlots[middleSlot].ingredient = {
@@ -1082,12 +1193,44 @@ function cookIngredientsInTray() {
   } else {
     // fail: restore ingredients back to their table positions
     console.log('Invalid recipe! Returning ingredients to table positions...');
+    if (failSound) {  // FIXED typo
+      failSound.play();
+    }
+    
     for (let i of filledSlots) {
       let ingredient = traySlots[i].ingredient;
       let posIndex = ingredient.tablePositionIndex;
-      if (posIndex !== undefined && posIndex >= 0 && posIndex < tablePositions.length) {
-        tablePositions[posIndex].ingredient = { name: ingredient.name, isDish: false, freshness: ingredient.freshness};
+      
+      // ADDED: Check if original position is empty before returning there
+      if (posIndex !== undefined && posIndex >= 0 && posIndex < tablePositions.length && 
+          tablePositions[posIndex].ingredient === null) {  // ← NEW CHECK
+        // Original spot is empty - return there
+        tablePositions[posIndex].ingredient = { 
+          name: ingredient.name, 
+          isDish: false, 
+          freshness: ingredient.freshness 
+        };
+        console.log('Returned ' + ingredient.name + ' to original position ' + posIndex);
+      } else {
+        // ADDED: Find alternative empty spot if original is occupied
+        let foundSpot = false;
+        for (let j = 0; j < tablePositions.length; j++) {
+          if (tablePositions[j].ingredient === null) {
+            tablePositions[j].ingredient = { 
+              name: ingredient.name, 
+              isDish: false, 
+              freshness: ingredient.freshness 
+            };
+            console.log('Returned ' + ingredient.name + ' to table position ' + j);
+            foundSpot = true;
+            break;
+          }
+        }
+        if (!foundSpot) {
+          console.log('ERROR: No table space for ' + ingredient.name + '!');
+        }
       }
+      
       traySlots[i].ingredient = null;
     }
   }

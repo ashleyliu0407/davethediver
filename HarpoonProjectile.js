@@ -15,6 +15,8 @@ class HarpoonProjectile extends Projectile {
         this.deathStruggleTimer = 0.5; // time for fish struggle (can change)
 
         this.targetFish = null; // the fish we are attached to
+
+        this.img = weaponImages.HarpoonHead; // harpoon head image
     }
 
     update() {
@@ -118,14 +120,25 @@ class HarpoonProjectile extends Projectile {
     }
 
     draw() {
-        // draw the harpoon head (need to change with image later)
-        fill(255);
-        noStroke();
-        ellipse(this.position.x, this.position.y, 10, 10);
 
         // draw the chain/line back to the player
         stroke(255, 100);
         strokeWeight(2);
         line(this.player.position.x, this.player.position.y, this.position.x, this.position.y);
+
+        // draw the harpoon head
+        push();
+        translate(this.position.x, this.position.y);
+        rotate(this.velocity.heading());
+        if (this.img) {
+            imageMode(CENTER);
+            image(this.img, 0, 0, 40, 15); // can change
+        }
+        else {
+            fill(255);
+            noStroke();
+            ellipse(0,0, 10, 10);
+        }
+        pop();
     }
 }
