@@ -16,11 +16,12 @@ function preload(){
 
 
 function setup(){
-    let cnv = createCanvas(1400,800);
+    let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent(document.body);
     //Button
     playButton = createButton("New Game");
-    playButton.position(width / 2 - 180, height / 2 + 200); // center the button
+    // playButton.position(width / 2 - 180, height / 2 + 200); // center the button
+    playButton.position(width / 2 - 220, height / 2 + height * 0.25);
     playButton.size(180, 60);
     playButton.style("font-size", "20px");
     playButton.style("color", "#bddcfdff");
@@ -38,7 +39,8 @@ function setup(){
 
     //Button
     continueButton = createButton("Continue Game");
-    continueButton.position(width / 2 + 80, height / 2 + 200); // center the button
+    // continueButton.position(width / 2 + 80, height / 2 + 200); // center the button
+    continueButton.position(width / 2 + 40, height / 2 + height * 0.25)
     continueButton.size(180, 60);
     continueButton.style("font-size", "20px");
     continueButton.style("color", "#bddcfdff");
