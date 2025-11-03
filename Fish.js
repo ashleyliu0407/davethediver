@@ -73,18 +73,25 @@ class Fish {
             return; // stop normal movement
         }
 
-        if (this.health <= 0) {
-            // check whether inventory space is full
-            if (inventory.items.length < inventory.totalSlots) {
-                // not full: auto-collect dead fish
-                this.x = lerp(this.x, player.position.x, 0.05);
-                this.y = lerp(this.y, player.position.y, 0.05);
-            }
-            else {
-                // full: dead fish goes up slowly
-                this.y -= 0.4;
-            }
+        // complex one: auto-collect dead fish
+        // if (this.health <= 0) {
+        //     // check whether inventory space is full
+        //     if (inventory.items.length < inventory.totalSlots) {
+        //         // not full: auto-collect dead fish
+        //         this.x = lerp(this.x, player.position.x, 0.05);
+        //         this.y = lerp(this.y, player.position.y, 0.05);
+        //     }
+        //     else {
+        //         // full: dead fish goes up slowly
+        //         this.y -= 0.4;
+        //     }
+        //     return;
+        // }
 
+        // easy one: dead fish float up
+        if (this.health <= 0) {
+            // dead fish slowly floats up
+            this.y -= 0.4;
             return;
         }
 
@@ -220,6 +227,18 @@ class Fish {
         }
 
         pop();
+
+        // Text "touch to collect"
+        if (this.health <= 0 && !this.isAttached) {
+            push();
+            fill(255);
+            stroke(0);
+            strokeWeight(2);
+            textAlign(CENTER, BOTTOM);
+            textSize(14);
+            text("Touch to Collect", this.x, this.y - this.size / 2 - 5);
+            pop();
+        }
 
         if (this.healthShowTimer > 0 && this.health > 0) {
             push();

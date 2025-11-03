@@ -64,7 +64,7 @@ class Player {
         this.currentWeapon = "Harpoon"; // current selected weapon
         this.ammo = {
             "Harpoon": Infinity,
-            "SpearGun": 10,
+            "SpearGun": Infinity, // can change to finite later
             "Netgun": 0
         }; // ammo count
         // harpoon state
@@ -324,6 +324,10 @@ class Player {
                 return; // still in cooldown
             }
 
+            if (knifeSound) {
+                knifeSound.play();
+            }
+
             // get config
             let config = weaponConfig["Knife"];
             this.knifeAttackTimer = config.attackTime; // set attack timer
@@ -350,6 +354,12 @@ class Player {
             // can only have one harpoon out at a time
             if (this.harpoonOut) return;
 
+            // play fire sound
+            if (fireSound) {
+                //fireSound.play();
+                fireSound.play(0,1,0.15); // play at half volume
+            }
+
             // create the projectile
             let harpoon = new HarpoonProjectile(this.position.x, this.position.y, fireVel, config, this);
             activeProjectiles.push(harpoon);
@@ -360,6 +370,12 @@ class Player {
         else if (this.currentWeapon === "SpearGun") {
             // check ammo
             if (this.ammo["SpearGun"] > 0) {
+
+                // play fire sound
+                if (fireSound) {
+                    fireSound.play(0,1,0.15); // play at half volume
+                }
+
                 // create the projectile
                 let spear = new SpearProjectile(this.position.x, this.position.y, fireVel, config, this);
                 activeProjectiles.push(spear);
@@ -388,7 +404,7 @@ class Player {
         // draw bag warning icon
         if (this.bagWarningIconImg) {
             // (this.currentImg.height * 0.4) is the displayed height of the player image
-            let iconY = this.position.y - (this.currentImg.height * 0.4) / 2 - 15; // above the player 30 pixels
+            let iconY = this.position.y - (this.currentImg.height * 0.4) / 2 - 15; // above the player 15 pixels
             let iconSize = 40; // can change
             image(this.bagWarningIconImg, this.position.x, iconY, iconSize, iconSize);
         }
