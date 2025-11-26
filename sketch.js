@@ -31,6 +31,8 @@ function setup(){
     // When clicked, go to another page
     playButton.mousePressed(() => {
         localStorage.removeItem("gameData");
+        localStorage.removeItem("caughtFishTypes");
+        localStorage.removeItem("shownNotifications");
         playButton.style("transform", "scale(0.95)");
         playButton.style("background-color", "#003d80");
         window.location.href = "day.html";  
