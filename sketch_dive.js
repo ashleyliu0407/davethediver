@@ -836,10 +836,24 @@ function mousePressed() {
   }
 
   // if right now is aiming, OR if using knife, firefire
-  if (mouseButton === LEFT && (player.isAiming || player.currentWeapon === "Knife")) {
+  if (mouseButton === LEFT && player.currentWeapon === "Knife") {
+    player.fire();
+    return;
+  }
+}
+
+function mouseReleased() {
+  // if right mouse released, shoot!
+  if (mouseButton === RIGHT && player.isAiming) {
     player.fire();
     player.isAiming = false;
-    return;
+
+    if (fishAim.isPlaying()) {
+      fishAim.fade(fishAim.getVolume(), 0, 0.3);
+      setTimeout(() => fishAim.stop(), 300);
+    }
+
+    player.currentImg = player.diverImgs.still;
   }
 }
 
@@ -869,14 +883,18 @@ function keyPressed(event) {
     let currentIndex = ownedWeapons.indexOf(player.currentWeapon);
     let nextIndex = (currentIndex + 1) % ownedWeapons.length;
     player.currentWeapon = ownedWeapons[nextIndex];
-  }
 
-  if (keyCode === 49) { // '1' key
-    if (player.isAiming || player.currentWeapon === "Knife") {
-      player.fire();
+    // reset aiming state when switching weapons
+    if (player.isAiming) {
       player.isAiming = false;
+      if (fishAim.isPlaying()) {
+        fishAim.fade(fishAim.getVolume(), 0, 0.3);
+        setTimeout(() => fishAim.stop(), 300);
+      }
+      //player.currentImg = player.diverImgs.still;
     }
   }
+
 }
 
 
