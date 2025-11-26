@@ -283,6 +283,28 @@ function draw() {
       drownSound.play();
     }
 
+    // first time drowning
+    if (!isPlayerDrowning) {
+
+      // drop weapons logic
+      let savedData = JSON.parse(localStorage.getItem('gameData'));
+      if (savedData && savedData.equippedFirearm) {
+        let weaponName = savedData.equippedFirearm;
+
+        if (savedData.weapons && savedData.weapons[weaponName] > 0) {
+          savedData.weapons[weaponName] -= 1;
+          console.log(`Lost 1 ${weaponName}. Remaining: ${savedData.weapons[weaponName]}`);
+        }
+
+        savedData.equippedFirearm = null;
+
+        // save back to localStorage
+        localStorage.setItem('gameData', JSON.stringify(savedData));
+      }
+
+
+    }
+
     // set drowning state
     isPlayerDrowning = true;
     drownFadeAlpha = 0;
@@ -1153,8 +1175,16 @@ function returnToBoat() {
   let gameData = JSON.parse(localStorage.getItem("gameData")) || {
     day: 1,
     coins: 100,
-    inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
+    inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}],
+    weapons: {'SpearGun': 1},
+    equippedFirearm: null
   };
+
+  // put firearm back to inventory
+  if (gameData.equippedFirearm) {
+    console.log(`Returning firearm ${gameData.equippedFirearm} to inventory.`);
+    gameData.equippedFirearm = null;
+  }
 
   // define a transfer table
   const fishDataDefaults = {

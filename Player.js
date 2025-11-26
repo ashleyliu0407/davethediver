@@ -54,19 +54,30 @@ class Player {
         this.radius = 20; // right now use circle, maybe delete this in future
 
         // weapon properties
-        // Player owns Harpoon by default
+        // set up
+        let storedData = JSON.parse(localStorage.getItem('gameData'));
+        // Player owns Harpoon and Knife by default
         this.weapons = {
             "Knife": true,
             "Harpoon": true,
-            "SpearGun": true,
+            "SpearGun": false,
             "Netgun": false
         }; // tracks owned weapons
+
+        // read equipped firearm from storage
+        if (storedData && storedData.equippedFirearm) {
+            // equip the firearm
+            this.weapons[storedData.equippedFirearm] = true;
+        }
+
         this.currentWeapon = "Harpoon"; // current selected weapon
+
         this.ammo = {
             "Harpoon": Infinity,
             "SpearGun": Infinity, // can change to finite later
             "Netgun": 0
         }; // ammo count
+        
         // harpoon state
         this.harpoonOut = false; // only one harpoon at a time
 

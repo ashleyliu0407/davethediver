@@ -1,8 +1,15 @@
-let gameData = JSON.parse(localStorage.getItem("gameData")) || {
-  day: 1,
-  coins: 100,
-  inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
-};
+let gameData = JSON.parse(localStorage.getItem("gameData"));
+if (!gameData) {
+  gameData = {
+    day: 1,
+    coins: 100,
+    inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}],
+    weapons: {'SpearGun': 1}, // for test
+    equippedFirearm: null
+  };
+  localStorage.setItem("gameData", JSON.stringify(gameData));
+  console.log("Initialized gameData in localStorage.");
+}
 
 //mbackground music
 let bgMusic;
@@ -49,6 +56,10 @@ let instructionBoxAlpha = 220;
 
 let bgSpeed=1, fgSpeed=0.8, mgSpeed=0; 
 
+let gearMenu;
+let gearButton;
+let weaponIcons = {};
+
 
 function preload(){
 
@@ -63,6 +74,9 @@ function preload(){
     boatImg = loadImage("images/boat.png");
     coinIcon = loadImage('images/restaurant/decorations/coin.png'); // add coin icon image
 
+    //load weapon icons
+    weaponIcons["SpearGun"] = loadImage("images/weapons/SpearGun_handbook.png");
+
 }
 
 function setup() {
@@ -76,6 +90,9 @@ function setup() {
     bgMusic.loop(); 
     bgMusic.setVolume(0.6);
   });
+
+  // initialize weapon menu
+  gearMenu = new GearMenu(weaponIcons);
   
 
   //parallax
@@ -106,8 +123,10 @@ function setup() {
   diveButton.style("font-family", "Quantico, sans-serif");
   diveButton.position(width/2-50, height/2);
   diveButton.mousePressed(() => {
-    nextPage = "dive.html";
-    fading = true;
+    if (!gearMenu.isVisible) { // prevent diving if gear menu is open
+      nextPage = "dive.html";
+      fading = true;
+    }
   });
 
   // //window.location.href = "dive.html";
@@ -116,6 +135,22 @@ function setup() {
   //   window.location.href = "dive.html";
   // });
 
+  // create gear button
+  gearButton = createButton('DIVING PREPARATION');
+  // gearButton = createButton("DIVER'S GEAR");
+  gearButton.size(140, 60);
+  gearButton.style("font-size", "14px");
+  gearButton.style("color", "#084387ff");
+  gearButton.style("background-color", "#bddcfdff"); 
+  gearButton.style("border-radius", "8px");
+  gearButton.style("cursor", "pointer");
+  gearButton.style("font-family", "Quantico, sans-serif");
+  gearButton.position(width/2 - 70, height/2 + 80); // below dive button
+  gearButton.mousePressed(() => {
+    if (!fading && !showInstructions) {
+      toggleGearMenu();
+    }
+  });
    
     // Create restuarant button
   restaurantButton = createButton('END DAY & GO TO THE RESTAURANT');
@@ -130,8 +165,10 @@ function setup() {
   restaurantButton.position(width/2+50, height/2);
   // restaurantButton.mousePressed(startDive);
   restaurantButton.mousePressed(() => {
-    nextPage = "sushi_bar.html";
-    fading = true;
+    if (!gearMenu.isVisible) { // prevent going to restaurant if gear menu is open
+      nextPage = "sushi_bar.html";
+      fading = true;
+    }
   });
 
   // restaurantButton.mousePressed(() => {
@@ -157,10 +194,34 @@ function setup() {
   
 }
 
+// helpers to toggle gear menu
+function toggleGearMenu() {
+  gearMenu.toggle();
+  updateButtonVisibility();
+}
+
+// Update button visibility based on gear menu state
+function updateButtonVisibility() {
+  if (gearMenu.isVisible) {
+    diveButton.hide();
+    restaurantButton.hide();
+    gearButton.hide();
+  } else {
+    diveButton.show();
+    restaurantButton.show();
+    gearButton.show();
+  }
+}
+
 function draw() {
   if (!isUnderwater) {
     drawSurfaceScene();
     drawMoneyAndDay();
+
+    // draw gear menu if visible
+    if (gearMenu.isVisible) {
+      gearMenu.display();
+    }
     
   } else {
     drawUnderwaterScene();
@@ -189,7 +250,7 @@ function draw() {
     fill(255, instructionBoxAlpha);
     stroke(0);
     strokeWeight(2);
-    rectMode(LEFT);
+    rectMode(CORNER);
     fill(250);
     rect(width/2+180, height/2-300, 440, 200, 20);
   
@@ -197,7 +258,7 @@ function draw() {
     noStroke();
     textFont("Quantico, sans-serif");
     fill(0);
-    textAlign(CORNER);
+    textAlign(LEFT);
     textSize(15);
     text(
       "DIVE to COLLECT fish\n\n" +
@@ -217,6 +278,15 @@ function windowResized() {
 function mousePressed(){
   if (showInstructions) {
     showInstructions = false; 
+    return;
+  }
+
+  if (gearMenu.isVisible) {
+    let handled = gearMenu.handleClick(mouseX, mouseY);
+
+    updateButtonVisibility();
+    
+    if (handled) return;
   }
 }
 
