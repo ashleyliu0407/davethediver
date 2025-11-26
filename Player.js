@@ -103,8 +103,8 @@ class Player {
             this.knifeCooldownTimer -= dt;
         }
 
-        // stop moving when aiming or harpoon is out
-        if (this.isAiming || this.harpoonOut) {
+        // stop moving only when harpoon is out
+        if (this.harpoonOut) {
             this.isThrusting = false;
         }
 
@@ -231,35 +231,16 @@ class Player {
 
     // move by player
     handleInput() {
-        let moving = false;
-        // --------- AIMING LOGIC ---------
-        // check for aiming input (right mouse button)
-        //IMAGE: AIMING
-        if (mouseIsPressed && mouseButton === RIGHT && !this.harpoonOut && this.currentWeapon !== "Knife") {
-             if (!fishAim.isPlaying()) {
-                fishAim.setVolume(0.6);
-                fishAim.play();
-            }
-            this.isAiming = true;
-            this.currentImg = this.diverImgs.aim;
-        }
-        else if (!mouseIsPressed && this.isAiming) { // released all mouse button
-            this.isAiming = false;
-            // Fade out the aim sound when aiming stops
-            fishAim.fade(fishAim.getVolume(), 0, 0.3);
-            setTimeout(() => fishAim.stop(), 300);
-        }
-
 
         // --------- MOVEMENT LOGIC ---------
-        // if aiming OR harpoon is out, do not allow movement
-        if (this.isAiming || this.harpoonOut) {
+        // if harpoon is out, do not allow movement
+        if (this.harpoonOut) {
             this.isThrusting = false;
             this.isSprinting = false;
             return; // stop here, no movement allowed
         }
 
-
+        let moving = false;
         let thrust = createVector(0,0);
 
         // reset states
@@ -267,9 +248,6 @@ class Player {
         this.isSprinting = false;
         //this.isAiming = false;
 
-        if (keyIsDown(16)) { // "shift"
-            this.isSprinting = true;
-        }
 
         if (keyIsDown(65)) { // "a"
             this.currentImg = this.diverImgs.swimLeft; //FOR PLAYER - LEFT
@@ -297,21 +275,66 @@ class Player {
             moving = true;
         }
 
-        if(!moving){
+        if (keyIsDown(16)) { // "shift"
+            this.isSprinting = true;
+        }
+
+        if (moving) {
+            // if moving, canencel aiming
+            if (this.isAiming) {
+                this.isAiming = false;
+                // Fade out the aim sound when aiming stops
+                if (fishAim.isPlaying()) {
+                    fishAim.fade(fishAim.getVolume(), 0, 0.3);
+                    setTimeout(() => fishAim.stop(), 300);
+                }
+            }
+
+            let currentThrust = this.thrustForce;
+            if (this.isSprinting && this.isThrusting) {
+                currentThrust *= this.sprintMultiplier;
+            }
+
+            currentThrust *= this.encumbranceFactor; // apply encumbrance factor
+
+            thrust.normalize(); // make the length be 1, ensure diagonal movement is not faster
+            thrust.mult(currentThrust);
+
+            this.applyForce(thrust);
+
+
+
+        }
+        else{
+            // not moving
             this.currentImg = this.diverImgs.still;
+
+            // --------- AIMING LOGIC ---------
+            // check for aiming input (right mouse button)
+            //IMAGE: AIMING
+            if (mouseIsPressed && mouseButton === RIGHT && !this.harpoonOut && this.currentWeapon !== "Knife") {
+                if (!fishAim.isPlaying()) {
+                    fishAim.setVolume(0.6);
+                    fishAim.play();
+                }
+                this.isAiming = true;
+                this.currentImg = this.diverImgs.aim;
+            }
+            else {
+                // release right mouse button or no action
+                if (this.isAiming) {
+                    this.isAiming = false;
+                    // Fade out the aim sound when aiming stops
+                    if (fishAim.isPlaying()) {
+                        fishAim.fade(fishAim.getVolume(), 0, 0.3);
+                        setTimeout(() => fishAim.stop(), 300);
+                    }
+                }
+                this.isAiming = false;
+            }
+
         }
 
-        let currentThrust = this.thrustForce;
-        if (this.isSprinting && this.isThrusting) {
-            currentThrust *= this.sprintMultiplier;
-        }
-
-        currentThrust *= this.encumbranceFactor; // apply encumbrance factor
-
-        thrust.normalize(); // make the length be 1, ensure diagonal movement is not faster
-        thrust.mult(currentThrust);
-
-        this.applyForce(thrust);
     }
 
     // fire method for shooting projectiles
