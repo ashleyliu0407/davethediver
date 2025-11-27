@@ -56,6 +56,12 @@ let weaponImages = {};
 let showInstructions = true;
 let instructionBoxAlpha = 220;
 
+//DAY 1 TUTORIAL
+let showTutorial = false;
+ // 0 = weapons, 1 = aim, 2 = inventory, 3 = oxygen
+let tutorialStep = 0;      
+let tutorialClickToAdvance = true;
+
 //menu pop up 
 let showMenuPopup = false;
 let menuPopupImg;
@@ -231,6 +237,14 @@ function setup() {
     bgMusic.setVolume(0.6);
   });
 
+  //tutorial if day1 
+  let saved = JSON.parse(localStorage.getItem("gameData"));
+  let getDay = saved.day;
+  if (getDay === 1){
+    showTutorial = true; 
+    tutorialStep = 0; 
+  }
+
 
   //Font
   textFont('Quantico');
@@ -276,7 +290,7 @@ function draw() {
   player.update();
 
   // check oxygen
-  if (player.currentOxygen <= 0) {
+  if ( !showTutorial && player.currentOxygen <= 0) {
 
     // play drown sound
     if (drownSound && !drownSound.isPlaying()) {
@@ -422,27 +436,27 @@ function draw() {
   pop();
 
   //instructions
-  if (showInstructions) {
-    // Text content
-    noStroke();
-    push();
-    fill(255);
-    pop();
-    textAlign(CENTER, CENTER);
-    textSize(20);
-    text(
-      "Hey Dave, Ready To Dive?\n\n" +
-      "• Use WASD to swim\n\n" +
-      "• Press TAB to change weapons\n\n" +
-      "• Use RIGHT CLICK (two fingers on mousepad) to AIM \n\n" +
-      "• Press 1 to SHOOT \n\n" +
-      "• Hold SHIFT to swim FASTER \n\n" +
-      "• Collected fish show up in INVENTORY\n\n" +
-      "• Keep an eye out for your OXYGEN or you'll loose your fish...\n\n" +
-      "Click anywhere to start.",
-      width / 2, height / 2
-    );
-  }
+  // if (showInstructions) {
+  //   // Text content
+  //   noStroke();
+  //   push();
+  //   fill(255);
+  //   pop();
+  //   textAlign(CENTER, CENTER);
+  //   textSize(20);
+  //   text(
+  //     "Hey Dave, Ready To Dive?\n\n" +
+  //     "• Use WASD to swim\n\n" +
+  //     "• Press TAB to change weapons\n\n" +
+  //     "• Use RIGHT CLICK (two fingers on mousepad) to AIM \n\n" +
+  //     "• Press 1 to SHOOT \n\n" +
+  //     "• Hold SHIFT to swim FASTER \n\n" +
+  //     "• Collected fish show up in INVENTORY\n\n" +
+  //     "• Keep an eye out for your OXYGEN or you'll loose your fish...\n\n" +
+  //     "Click anywhere to start.",
+  //     width / 2, height / 2
+  //   );
+  // }
 
   //MENU
   fill(255);
@@ -466,9 +480,103 @@ function draw() {
   );
 
  
-  
+  //showing tutorial - drawn on top of everything
+  if(showTutorial){
+    drawTutorial(); 
+  }
 
 }
+
+
+
+//TUTORIAL
+function drawTutorial() {
+
+  // console.log("tutorual");
+
+  push();
+  resetMatrix();
+
+  if (tutorialStep === 0) {
+    // --- STEP 1: Circle Weapons ---
+    // Weapons UI is bottom-left area:
+    let x = 30; 
+    let y = height - 90;
+    let w = 60 * 3 + 20; // 3 slots + spacing
+    let h = 60;
+
+    // Draw red rectangle around weapons
+    noFill();
+    stroke(255, 0, 0);
+    strokeWeight(3);
+    rect(x - 10, y - 10, w + 20, h + 20, 10);
+
+    // Draw text above the rectangle
+    fill(255);
+    noStroke();
+    textAlign(LEFT, TOP);
+    textSize(22);
+    fill(255, 0, 0);
+    text("These are your weapons.\nUse TAB to switch between them.", x, y - 80);
+  }
+
+  else if (tutorialStep === 1) {
+    // 2 Aim & Shoot 
+    fill(255, 0,0);
+    text("DOUBLE TAP or RIGHT CLICK on the trackpad to AIM.\nRelease to shoot.",
+         width/2 - 250, height/2 - 50);
+  }
+
+  else if (tutorialStep === 2) {
+    //  3: Inventory 
+    let bagX = width - 100;
+    let bagY = height - 100;
+    let bagSize = 80;
+
+    noFill();
+    stroke(255,0,0);
+    strokeWeight(4);
+    ellipse(bagX + bagSize/2, bagY + bagSize/2, bagSize + 30);
+
+    fill(255, 0,0);
+    noStroke();
+    text("This is your inventory.\nAll fish you catch appear here.\n You can discard unecessary fish.",
+         width - 200, height-200);
+  }
+
+   else if (tutorialStep === 3) {
+    // 4: Oxygen 
+    let oxyX = 20;
+    let oxyY = 30;
+    let oxyW = 220;
+    let oxyH = 28;
+
+    noFill();
+    stroke(255,0,0);
+    strokeWeight(4);
+    rect(oxyX - 10, oxyY - 10, oxyW + 20, oxyH + 20, 6);
+
+    fill(255,0,0);
+    noStroke();
+    text("This is your oxygen level.\n1) Collect bubbles to stay alive or 2) return to the surface!",
+         280, oxyY + 80);
+  }
+
+  else if (tutorialStep === 4) {
+    // 5
+    fill(255, 0,0);
+    text("W / A / S / D to swim.",
+         width/2 - 250, height/2 - 50);
+  }
+
+
+
+  pop();
+}
+
+
+
+
 
 // ===============================
 // GRID GENERATION
@@ -837,6 +945,18 @@ function mousePressed() {
 
   if (showInstructions) {
     showInstructions = false;
+    return; 
+  }
+
+
+  if (showTutorial) {
+    //go onto next step 
+    tutorialStep++;
+    //end the tutorual fully 
+    if (tutorialStep > 4) {
+      showTutorial = false; 
+    }
+
     return; 
   }
 
