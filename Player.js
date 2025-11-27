@@ -104,6 +104,10 @@ class Player {
 
     // this is the main function to update the player's physics
     update() {
+        if (showTutorial) {
+            this.currentOxygen = this.maxOxygen;
+            return;
+        }
         let dt = deltaTime / 1000; // convert milliseconds to seconds
 
         // knife attack timer update
