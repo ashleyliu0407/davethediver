@@ -3,7 +3,9 @@ let backgroundImg;
 let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   day: 1,
   coins: 100,
-  inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
+  inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}],
+  weapons: {'SpearGun': 1}, // for test
+  equippedFirearm: null
 };
 
 
