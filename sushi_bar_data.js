@@ -31,7 +31,7 @@ function checkForNewUnlocks() {
     }
   }
   
-  // Only show notifications for dishes that haven't been shown before
+  // only show notifications for dishes that haven't been shown before
   for (let item of menuItems) {
     if (item.unlocked && !shownNotifications.has(item.name)) {
       unlockNotificationQueue.push({
@@ -43,12 +43,12 @@ function checkForNewUnlocks() {
     }
   }
   
-  // Save shown notifications to localStorage
+  // save shown notifications to localStorage
   if (unlockNotificationQueue.length > 0) {
     localStorage.setItem("shownNotifications", JSON.stringify([...shownNotifications]));
     console.log('Showing unlock notifications for: ' + unlockNotificationQueue.map(n => n.dishName).join(', '));
     
-    // Play sound once for the unlock event
+    // play sound once for the unlock event
     if (coinSound) {
       coinSound.play();
     }
@@ -122,7 +122,7 @@ function registerInventoryFish() {
 // extract fish ingredients from a recipe (excludes Rice)
 function extractFishFromRecipe(recipeKey) {
   let ingredients = recipeKey.split('+');
-  // filter out non-fish items (Rice, etc.)
+  // filter out non-fish items (rice, etc.)
   return ingredients.filter(ing => ing !== 'Rice');
 }
 
@@ -141,6 +141,35 @@ function autoGenerateUnlockRequirements() {
   }
 }
 
+// check if we have ingredients for a dish
+function hasIngredientsForDish(dishName) {
+  // find recipe for this dish
+  let recipeKey = Object.keys(recipes).find(key => recipes[key].dish === dishName);
+  if (!recipeKey) return false;
+  
+  let requiredIngredients = recipeKey.split('+');
+  
+  // check if each ingredient exists with quantity > 0 OR is on the table
+  for (let ingName of requiredIngredients) {
+    // check inventory
+    let inInventory = ingredients.find(ing => 
+      ing.name === ingName && (ing.quantity === undefined || ing.quantity > 0)
+    );
+    
+    // check table positions
+    let onTable = tablePositions.some(pos => 
+      pos.ingredient && pos.ingredient.name === ingName
+    );
+    
+    // ingredient must be either in inventory or on table
+    if (!inInventory && !onTable) {
+      return false; // missing ingredient
+    }
+  }
+  
+  return true;
+}
+
 // recipes -- keys are ingredient names joined by '+', values are dish name + image path
 let recipes = {
   'Mackerel+Salmon+Sardine+Yellowtail': {dish: "Dave's Sashimi Plate", image: 'images/restaurant/dishes/sashimi_plate.png'},
@@ -155,10 +184,10 @@ let recipes = {
 
 // menu items -- dishes to display on menu
 let menuItems = [
-  {name: "Mackerel Sashimi", price: '$15', description: 'Mackerel', image: 'images/restaurant/dishes/mackerel_sashimi.png', available: false, requiredFish: ['Mackerel'], requiredMoney: 0, unlocked: true},
-  {name: "Sardine Sashimi", price: '$12', description: 'Sardine', image: 'images/restaurant/dishes/sardine_sashimi.png', available: false, requiredFish: ['Sardine'], requiredMoney: 0, unlocked: true},
-  {name: "Salmon Sushi", price: '$35', description: 'Salmon + Rice', image: 'images/restaurant/dishes/salmon_sushi.png', available: false, requiredFish: ['Salmon'], requiredMoney: 0, unlocked: true},
-  {name: "Yellowtail Sushi", price: '$35', description: 'Yellowtail + Rice', image: 'images/restaurant/dishes/yellowtail_sushi.png', available: false, requiredFish: ['Yellowtail'], requiredMoney: 0, unlocked: true},
+  {name: "Mackerel Sashimi", price: '$15', description: 'Mackerel', image: 'images/restaurant/dishes/mackerel_sashimi.png', available: false, requiredFish: ['Mackerel'], requiredMoney: 0, unlocked: false},
+  {name: "Sardine Sashimi", price: '$12', description: 'Sardine', image: 'images/restaurant/dishes/sardine_sashimi.png', available: false, requiredFish: ['Sardine'], requiredMoney: 0, unlocked: false},
+  {name: "Salmon Sushi", price: '$35', description: 'Salmon + Rice', image: 'images/restaurant/dishes/salmon_sushi.png', available: false, requiredFish: ['Salmon'], requiredMoney: 0, unlocked: false},
+  {name: "Yellowtail Sushi", price: '$35', description: 'Yellowtail + Rice', image: 'images/restaurant/dishes/yellowtail_sushi.png', available: false, requiredFish: ['Yellowtail'], requiredMoney: 0, unlocked: false},
   {name: "Dave's Sashimi Plate", price: '$50', description: 'Mackerel + Sardine + Salmon + Yellowtail', image: 'images/restaurant/dishes/sashimi_plate.png', available: false, requiredFish: ['Mackerel', 'Sardine', 'Salmon', 'Yellowtail'], requiredMoney: 0, unlocked: false},
   {name: "Dave's Midnight Unadon", price: '$40', description: 'Eel + Rice', image: 'images/restaurant/dishes/unadon.png', available: false, requiredFish: ['Eel'], requiredMoney: 0, unlocked: false},
   {name: "Dave's Favorite Uni Bowl", price: '$50', description: 'Sea Urchin + Rice', image: 'images/restaurant/dishes/uni_bowl.png', available: false, requiredFish: ['Sea Urchin'], requiredMoney: 0, unlocked: false},

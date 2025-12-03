@@ -1,5 +1,5 @@
 // sushi_bar_customers.js
-// Customer creating, movement, ordering, and eating logic
+// customer creating, movement, ordering, and eating logic
 
 // customer system variables
 let customers = [];
@@ -11,13 +11,12 @@ let customerSideImages = {}; // side walking images
 let customerFrontImages = {}; // front facing images
 
 function getAllCustomerTypes() {
-    // derive from images loaded in loadCustomerImages()
-    // e.g., ['customer1','customer2', ...]
+    // derive from images loaded in loadCustomerImages(), e.g., ['customer1','customer2', ...]
     return Object.keys(customerFrontImages);
   }
   
 function getActiveCustomerTypes() {
-    // count ANY customer currently present (including 'leaving' so it truly never "appears twice")
+    // count any customer currently present (including 'leaving' so it truly never "appears twice")
     const types = new Set();
     for (const c of customers) types.add(c.type);
     return types;
@@ -294,12 +293,15 @@ function createCustomer() {
   }
   const customerType = availableTypes[int(random(availableTypes.length))];
 
-  // filter only available dishes
-  const availableDishes = menuItems.filter(item => item.available);
+  // filter only SERVABLE dishes (unlocked + available + has ingredients)
+  const availableDishes = menuItems.filter(item => 
+    item.unlocked && item.available && hasIngredientsForDish(item.name)
+  );
   if (availableDishes.length === 0) {
     console.log('No available dishes! Customer cannot be created.');
     return;
   }
+  
   const randomDishItem = availableDishes[int(random(availableDishes.length))];
   const randomDish = randomDishItem.name;
 

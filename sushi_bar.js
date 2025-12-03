@@ -637,6 +637,8 @@ function drawScrollablePopup() {
       } else {
         // menu - with lock/unlock UI
         let isLocked = !item.unlocked;
+        let hasIngredients = hasIngredientsForDish(item.name);
+        let canToggle = !isLocked && hasIngredients;
         textAlign(LEFT);
         
         // dish name
@@ -646,7 +648,7 @@ function drawScrollablePopup() {
         
         // price
         textSize(18); 
-        fill(isLocked ? color(150, 150, 150) : color(0, 150, 0));  // Gray or green
+        fill(isLocked ? color(150, 150, 150) : (hasIngredients ? color(0, 150, 0) : color(150, 150, 150)));
         text(item.price, popupX + 150, cardY + 55);
         
         // description
@@ -654,8 +656,7 @@ function drawScrollablePopup() {
         fill(isLocked ? 150 : 100);  // Gray or dark gray
         text(item.description, popupX + 150, cardY + 85);
         
-        
-        // if locked: Show lock overlay and requirements
+        // if locked: show lock overlay and requirements
         if (isLocked) {
           // semi-transparent gray overlay
           fill(255, 255, 255, 180);
@@ -678,6 +679,22 @@ function drawScrollablePopup() {
           textSize(12);
           textAlign(LEFT);
           text(getUnlockRequirementText(item), popupX + 150, cardY + 105);
+          
+        } else if (!hasIngredients) {
+          // no ingredients - show unavailable overlay
+          // fill(255, 220, 220, 110); // light red tint
+          // noStroke();
+          // rect(popupX + 30, cardY, popupWidth - 60, 120, 10);
+          
+          // show toggle button (disabled state - red background)
+          let toggleX = popupX + popupWidth - 180;
+          let toggleY = cardY + 40;
+          let toggleWidth = 140;
+          let toggleHeight = 40;
+          
+          drawButton(toggleX, toggleY, toggleWidth, toggleHeight, 
+                     'Unavailable', 
+                     color(230, 140, 140));
           
         } else {
           let toggleX = popupX + popupWidth - 180;
@@ -833,7 +850,9 @@ function drawReadyToServeButton() {
     }
 
     // Check if any menu items are available
-    let hasAvailableDishes = menuItems.some(item => item.available);
+    let hasAvailableDishes = menuItems.some(item => 
+      item.unlocked && item.available && hasIngredientsForDish(item.name)
+    );
     
     // Increment shake timer if it's active
     if (noMenuShakeTimer > 0) {
@@ -925,6 +944,10 @@ function drawReadyToServeButton() {
 }
 
 function mousePressed() {
+  let hasAvailableDishes = menuItems.some(item => 
+    item.unlocked && item.available && hasIngredientsForDish(item.name)
+  );
+
   // check for "Ready to Serve" button click during preparation
   if (!musicStarted && bgMusic) {
     bgMusic.loop();
@@ -946,17 +969,17 @@ function mousePressed() {
     if (mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
         mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2) {
 
-      // Check if any menu items are available
+      // check if any menu items are available
       let hasAvailableDishes = menuItems.some(item => item.available);
       
       if (!hasAvailableDishes) {
         console.log('Cannot open restaurant - no dishes available on menu!');
-        // Trigger shake effect by starting the timer
+        // trigger shake effect by starting the timer
         noMenuShakeTimer = 1;
         if (errorSound) {
           errorSound.play();
         }
-        return; // Prevent opening
+        return; // prevent opening
       }
       
       gameState = 'serving';
@@ -1140,12 +1163,24 @@ function mousePressed() {
         let toggleX = popupX + popupWidth - 180;
         if (mouseX > toggleX && mouseX < toggleX + 140 &&
             mouseY > toggleY && mouseY < toggleY + 40) {
-          if (toggleSound) {
-            toggleSound.play();
+          
+          // only allow toggle if unlocked AND has ingredients
+          let item = menuItems[i];
+          if (item.unlocked && hasIngredientsForDish(item.name)) {
+            if (toggleSound) {
+              toggleSound.play();
+            }
+            menuItems[i].available = !menuItems[i].available;
+            console.log('Toggled ' + menuItems[i].name + ' to ' + 
+                        (menuItems[i].available ? 'available' : 'unavailable'));
+          } else {
+            // play error sound if trying to toggle unavailable dish
+            if (errorSound) {
+              errorSound.play();
+            }
+            console.log('Cannot toggle ' + item.name + ' - ' + 
+                        (!item.unlocked ? 'locked' : 'no ingredients'));
           }
-          menuItems[i].available = !menuItems[i].available;
-          console.log('Toggled ' + menuItems[i].name + ' to ' + 
-                      (menuItems[i].available ? 'available' : 'unavailable'));
           return;
         }
       }
@@ -1449,26 +1484,6 @@ function returnIngredientToInventory(ingredient, location) {
     });
     console.log('Returned ' + name + ' (' + freshness + ') from ' + location + ' → created new entry with quantity 1');
   }
-}
-
-// Helper function (keep this if you want to use it later)
-function isIngredientInUse(ingredientName, freshness) {
-  // Check table positions
-  for (let pos of tablePositions) {
-    if (pos.ingredient && pos.ingredient.name === ingredientName && pos.ingredient.freshness === freshness) {
-      return true;
-    }
-  }
-  
-  // Check tray slots (only raw ingredients, not dishes)
-  for (let slot of traySlots) {
-    if (slot.ingredient && !slot.ingredient.isDish && 
-        slot.ingredient.name === ingredientName && slot.ingredient.freshness === freshness) {
-      return true;
-    }
-  }
-  
-  return false;
 }
 
 function endDay() {
