@@ -264,12 +264,25 @@ function setup() {
   //Font
   textFont('Quantico');
 
+  //load upgrades
+  let upgrades = saved.upgrades || { AirTank: 1, CargoBox: 1};
+
+  const oxygenLevels = {1: 60, 2: 90, 3: 120}; // can change, keep same in GearMenu.js
+  const bagLevels = {1: 6, 2: 8, 3: 10}; // can change, keep same in GearMenu.js
+
+  let currentMaxOxygen = oxygenLevels[upgrades.AirTank] || 60;
+  let currentBagCapacity = bagLevels[upgrades.CargoBox] || 6;
+
   player = new Player(0, 0, diverImgs);
+  // set player max oxygen based on upgrade
+  player.maxOxygen = currentMaxOxygen;
+  player.currentOxygen = player.maxOxygen;
+
   oceanHeight = GRID_ROWS * CELL_HEIGHT;
   maxDepth = oceanHeight;
 
   // Use Inventory class from external file
-  inventory = new Inventory(6, backpackIconImg); // can change
+  inventory = new Inventory(currentBagCapacity, backpackIconImg);
   spawnOxygenBoxes();
 
   // Create return button
