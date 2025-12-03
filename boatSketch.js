@@ -330,7 +330,7 @@ function drawWaves() {
   
   // Create the wave shape using Perlin noise
   //x --> peaks
-  for (let x = 0; x <= width + 10; x += 25) {
+  for (let x = 0; x <= width + 15; x += 25) {
     // map noise --> smoothed out waves 
     // let y = map(noise(xoff, yoff), 0, 1, height/1.5 - 40, height/1.5 + 40);
     let y = map(noise(xoff, yoff), 0, 1, height/1.2 - 40, height/1.2 + 40);
@@ -415,12 +415,7 @@ function drawMoneyAndDay() {
   pop();
 }
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  image(backgroundImg, 0, 0, windowWidth, windowHeight);
 
-  playButton.position(width / 2 - 220, height / 2 + height * 0.25);
-  continueButton.position(width / 2 + 40, height / 2 + height * 0.25);
-}
+
 
 
