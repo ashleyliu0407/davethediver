@@ -268,13 +268,13 @@ class GearMenu {
             textSize(18);
             text(nextStats.label, cx + 40, y + 20);
         }
-        else {
-            fill(this.colors.textAccent);
-            textAlign(CENTER, CENTER);
-            textSize(18);
-            //text("MAX LEVEL REACHED", cx + 30, y + 10);
-            text("MAX LEVEL", cx + 30, y + 10);
-        }
+        // else {
+        //     fill(this.colors.textAccent);
+        //     textAlign(CENTER, CENTER);
+        //     textSize(18);
+        //     //text("MAX LEVEL REACHED", cx + 30, y + 10);
+        //     text("MAX LEVEL", cx + 30, y + 10);
+        // }
 
         // upgrade button
         let btnX = cx + rowW/2 - 70;
