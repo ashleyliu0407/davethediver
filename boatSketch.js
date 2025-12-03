@@ -60,6 +60,8 @@ let gearMenu;
 let gearButton;
 let weaponIcons = {};
 
+let upgradeIcons = {};
+
 
 function preload(){
 
@@ -77,6 +79,10 @@ function preload(){
     //load weapon icons
     weaponIcons["SpearGun"] = loadImage("images/weapons/SpearGun_handbook.png");
 
+    // upgrade icons
+    upgradeIcons["AirTank"] = loadImage("images/upgrade/AirTank.png");
+    upgradeIcons["CargoBox"] = loadImage("images/upgrade/CargoBox.png");
+
 }
 
 function setup() {
@@ -92,7 +98,8 @@ function setup() {
   });
 
   // initialize weapon menu
-  gearMenu = new GearMenu(weaponIcons);
+  let allMenuIcons = {...weaponIcons, ...upgradeIcons};
+  gearMenu = new GearMenu(allMenuIcons);
   
 
   //parallax
