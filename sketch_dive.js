@@ -20,6 +20,13 @@ let drownFadeAlpha = 0; // The transparency of the dark secret
 let drownTimer = 2.0; // seconds until change to boat page
 
 
+//Rocks background 
+let rockBG;
+let rockBGs = [];
+const ROCK_SPACING =  800; 
+let rockPlacements = [];
+
+
 // Grid and ocean settings
 const GRID_ROWS = 30;
 const WORLD_START_X = -4000;
@@ -178,6 +185,12 @@ function preload() {
   knifeSound = loadSound('sounds/diving/knife.mp3');
   retrieveSound = loadSound('sounds/diving/retrieve_harpoon.mp3');
 
+  //rocks
+  rockBG = loadImage("images/rocks/rocks.png");
+  rockBGs.push(loadImage("images/rocks/rocks1.png"));
+  rockBGs.push(loadImage("images/rocks/rocks2.png"));
+  rockBGs.push(loadImage("images/rocks/rocks3.png"));
+
   backpackIconImg = loadImage("images/bag/BagUI.png");
   boxImages.oxygen = loadImage("images/oxyg.png");
 
@@ -271,6 +284,12 @@ function setup() {
   returnButton.position(width/2 - 135, 80); // Center top
   returnButton.mousePressed(returnToBoat);
   returnButton.hide();
+
+  generateRockPlacements();
+
+
+
+
 }
 
 function draw() {
@@ -285,6 +304,9 @@ function draw() {
 
   background(0);
   drawOceanGradient();
+  // drawParallaxBackground();
+  drawRockParallax();
+
 
   player.encumbranceFactor = inventory.outOfCapacity(); // update encumbrance factor
 
@@ -393,7 +415,6 @@ function draw() {
   }
 
 
-
   player.display();
   pop();
   drawDarknessOverlay();
@@ -488,6 +509,50 @@ function draw() {
   }
 
 }
+
+
+function generateRockPlacements() {
+  rockPlacements = [];
+  let totalWidth = WORLD_WIDTH;
+
+  for (let x = WORLD_START_X; x < WORLD_START_X + totalWidth; x += ROCK_SPACING) {
+    let img = random(rockBGs); // choose a random rock formation
+    rockPlacements.push({ x, img });
+  }
+}
+
+function drawRockParallax() {
+  push();
+  imageMode(CENTER);
+
+  const ROCK_TARGET_HEIGHT = 1500;
+  let rockWidth; 
+  let rockHeight; 
+
+
+  let cameraOffsetY = player.position.y - height / 2;
+  // parallax factor for rocks
+  let parallaxFactor = 0.9; 
+
+
+  for (let rock of rockPlacements) {
+    let screenX = (rock.x - cameraOffset) * parallaxFactor + width / 2;
+    let screenY = height / 2 - cameraOffsetY * parallaxFactor + 650;
+
+     
+  rockWidth = rock.img.width;      
+  rockHeight = ROCK_TARGET_HEIGHT;
+
+    // draw only if on screen
+    if (screenX > -800 && screenX < width + 800) {
+      tint(225, 200);
+      image(rock.img, screenX, screenY, rockWidth, rockHeight);
+    }
+  }
+
+  pop();
+}
+
 
 
 
@@ -937,6 +1002,8 @@ function drawMenuItems (){
   
 }
 
+
+
 // INPUT HANDLING FOR INVENTORY
 function mousePressed() {
   // if oxygen is low, show warning
@@ -949,7 +1016,6 @@ function mousePressed() {
     showInstructions = false;
     return; 
   }
-
 
   if (showTutorial) {
     //go onto next step 
@@ -1367,3 +1433,4 @@ function returnToBoat() {
   // go back to boat scene
   window.location.href = "boatStart.html";
 }
+
