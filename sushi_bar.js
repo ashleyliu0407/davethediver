@@ -955,6 +955,25 @@ function mousePressed() {
     console.log('Background music started!');
   }
 
+  // check for "Sold Out" button clicks during serving
+  if (gameState === 'serving' && !activePopup) {
+    if (checkSoldOutButtons()) {
+      return; // click was handled, exit early
+    }
+  }
+
+  if (unlockNotificationQueue.length > 0) {
+    unlockNotificationQueue.shift();
+    return;
+  }
+
+  // check for "Ready to Serve" button click during preparation
+  if (!musicStarted && bgMusic) {
+    bgMusic.loop();
+    musicStarted = true;
+    console.log('Background music started!');
+  }
+
   if (unlockNotificationQueue.length > 0) {
     unlockNotificationQueue.shift(); // Remove first item from queue
     return;

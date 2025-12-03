@@ -160,9 +160,19 @@ function hasIngredientsForDish(dishName) {
     let onTable = tablePositions.some(pos => 
       pos.ingredient && pos.ingredient.name === ingName
     );
+
+    // check tray slots (only raw ingredients, not dishes)
+    let onTray = traySlots.some(slot => 
+      slot.ingredient && !slot.ingredient.isDish && slot.ingredient.name === ingName
+    );
+
+    // check if currently being dragged (and it's not a dish)
+    let beingDragged = draggedIngredient && 
+                       !draggedIngredient.isDish && 
+                       draggedIngredient.name === ingName;
     
     // ingredient must be either in inventory or on table
-    if (!inInventory && !onTable) {
+    if (!inInventory && !onTable && !onTray && !beingDragged) {
       return false; // missing ingredient
     }
   }

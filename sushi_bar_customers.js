@@ -269,7 +269,7 @@ function drawCustomers() {
             text(lines[i], customer.x, startY + (i * lineHeight));
           }
         } else {
-          // Normal dialogue
+          // normal dialogue
           fill(255, 255, 255, customer.alpha);
           stroke(0, 0, 0, customer.alpha);
           strokeWeight(2);
@@ -277,11 +277,115 @@ function drawCustomers() {
           textSize(16);
           text(customer.dialogue, customer.x, customer.y - 90);
         }
+        // if customer is ordering, check if dish is still available
+        if (customer.state === 'ordering') {
+          let orderedDish = menuItems.find(item => item.name === customer.order);
+          let isDishAvailable = orderedDish && orderedDish.unlocked && orderedDish.available && hasIngredientsForDish(orderedDish.name);
+          
+          if (!isDishAvailable) {
+            // button positioned below the dialogue
+            let buttonX = customer.x - 40;
+            let buttonY = customer.y - 65;
+            let buttonWidth = 80;
+            let buttonHeight = 20;
+            
+            let isHovered = mouseX > buttonX && mouseX < buttonX + buttonWidth &&
+                            mouseY > buttonY && mouseY < buttonY + buttonHeight;
+            
+            // check if mouse is near the customer OR hovering over button
+            let distanceToCustomer = dist(mouseX, mouseY, customer.x, customer.y - 50);
+            
+            // fade in when mouse gets close (within 120 pixels) OR when hovering button
+            let maxDistance = 120;
+            let shouldShow = distanceToCustomer < maxDistance || isHovered;
+            
+            if (shouldShow) {
+              // calculate fade based on distance (but full opacity when hovering button)
+              let fadeAmount;
+              if (isHovered) {
+                fadeAmount = customer.alpha; // full opacity when hovering
+              } else {
+                fadeAmount = map(distanceToCustomer, maxDistance, 0, 0, customer.alpha);
+                fadeAmount = constrain(fadeAmount, 0, customer.alpha);
+              }
+              
+              // subtle glow effect when hovered
+              if (isHovered) {
+                fill(255, 100, 100, fadeAmount * 0.3);
+                noStroke();
+                rect(buttonX - 3, buttonY - 3, buttonWidth + 6, buttonHeight + 6, 7);
+              }
+              
+              // button background
+              fill(isHovered ? color(220, 60, 60, fadeAmount) : color(180, 50, 50, fadeAmount));
+              stroke(255, 255, 255, fadeAmount * 0.8);
+              strokeWeight(1.5);
+              rect(buttonX, buttonY, buttonWidth, buttonHeight, 5);
+              
+              // button text
+              fill(255, 255, 255, fadeAmount);
+              noStroke();
+              textAlign(CENTER, CENTER);
+              textSize(isHovered ? 12 : 11);
+              textStyle(BOLD);
+              text('SOLD OUT', buttonX + buttonWidth/2, buttonY + buttonHeight/2);
+              textStyle(NORMAL);
+              
+              // optional: small warning icon (triangle with !)
+              if (isHovered) {
+                fill(255, 255, 255, fadeAmount);
+                textSize(10);
+                // text('⚠', buttonX - 10, buttonY + buttonHeight/2);
+              }
+            }
+          }
+        }
       }
-      
       pop();
     }
   }
+}
+
+function checkSoldOutButtons() {
+  // check for clicks on "Sold Out" buttons for customers whose dishes are unavailable
+  for (let customer of customers) {
+    if (customer.state === 'ordering') {
+      // check if this customer's order is no longer servable
+      let orderedDish = menuItems.find(item => item.name === customer.order);
+      let isDishAvailable = orderedDish && orderedDish.unlocked && orderedDish.available && hasIngredientsForDish(orderedDish.name);
+      
+      if (!isDishAvailable) {
+        // calculate button position (below the customer's order dialogue)
+        let buttonX = customer.x - 50;
+        let buttonY = customer.y - 60;
+        let buttonWidth = 100;
+        let buttonHeight = 25;
+        
+        // check if mouse is over the button
+        if (mouseX > buttonX && mouseX < buttonX + buttonWidth &&
+            mouseY > buttonY && mouseY < buttonY + buttonHeight) {
+          
+          console.log('Sold out - customer leaving without payment');
+          
+          // customer leaves immediately
+          customer.state = 'leaving';
+          customer.facing = 'side';
+          customer.dialogue = 'Sold out...';
+          
+          // clear their plate
+          plateDishes[customer.plateIndex] = null;
+          
+          // play error sound
+          if (errorSound) {
+            errorSound.play();
+          }
+          
+          return true; // click was handled
+        }
+      }
+    }
+  }
+  return false;
 }
 
 function createCustomer() {
