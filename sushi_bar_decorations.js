@@ -141,11 +141,9 @@ function drawDecorations() {
     if (deco.instances) {
       for (let instance of deco.instances) {
         if (decorationImages[deco.name]) {
-          let w = 100, h = 100;
-          if (deco.name.includes('Wall Art')) { 
-            w = 200;
-            h = 150;
-          }
+          // all paintings are 200x150
+          let w = 200;
+          let h = 150;
           
           image(decorationImages[deco.name], instance.x, instance.y, w, h);
         }
@@ -169,11 +167,9 @@ function drawDecorations() {
     push();
     tint(255, 150);
     
-    let w = 100, h = 100;
-    if (placementMode.name.includes('Wall Art')) { 
-      w = 200;
-      h = 150;
-    }
+    // all paintings are 200x150
+    let w = 200;
+    let h = 150;
     
     if (decorationImages[placementMode.name]) {
       image(decorationImages[placementMode.name], mouseX, mouseY, w, h);
@@ -412,18 +408,12 @@ function handleDecorationPlacement() {
     return false;
   }
   
-  // check if clicking in valid area (not on UI elements)
+  // check if clicking in valid area (not on ui elements)
   let isOverUI = mouseY > 580 || (mouseY < 150 && mouseX < 300);
   
-  // get decoration dimensions (only wall art now since plants are fixed)
-  let decorationWidth, decorationHeight;
-  if (placementMode.name.includes('Wall Art')) {
-    decorationWidth = 200;
-    decorationHeight = 150;
-  } else {
-    decorationWidth = 100;
-    decorationHeight = 100;
-  }
+  // all paintings are 200x150
+  let decorationWidth = 200;
+  let decorationHeight = 150;
   
   // calculate decoration bounding box (imageMode is CENTER)
   let decorationLeft = mouseX - decorationWidth / 2;
@@ -465,7 +455,7 @@ function handleDecorationPlacement() {
     placementMode = null;
     return true;
   } else {
-    // cancel placement mode if clicking on UI
+    // cancel placement mode if clicking on ui
     console.log('Cancelled placement mode');
     placementMode = null;
     if (errorSound) errorSound.play();
