@@ -3,7 +3,7 @@ let decorations = [
   { 
     name: 'Flower Vases', 
     image: 'images/restaurant/decorations/flower_vase.png',
-    price: 300, 
+    price: 200, 
     purchased: false,
     active: false,
     description: 'Fresh flowers on each table',
@@ -13,7 +13,7 @@ let decorations = [
   { 
     name: 'Tree in the Waves', 
     image: 'images/restaurant/decorations/wall_art_1.png',
-    price: 600, 
+    price: 250, 
     purchased: false,
     instances: [],
     description: 'Abstract painting',
@@ -22,7 +22,7 @@ let decorations = [
   { 
     name: 'The Whale', 
     image: 'images/restaurant/decorations/wall_art_2.png',
-    price: 600, 
+    price: 250, 
     purchased: false,
     instances: [],
     description: 'Abstract painting',
@@ -31,7 +31,7 @@ let decorations = [
   { 
     name: 'Deep Blue', 
     image: 'images/restaurant/decorations/wall_art_3.png',
-    price: 600, 
+    price: 250, 
     purchased: false,
     instances: [],
     description: 'Abstract painting',
@@ -40,7 +40,7 @@ let decorations = [
   { 
     name: 'Frozen Shrine', 
     image: 'images/restaurant/decorations/wall_art_5.png',
-    price: 600, 
+    price: 250, 
     purchased: false,
     instances: [],
     description: 'Abstract painting',
@@ -49,7 +49,7 @@ let decorations = [
   { 
     name: 'Plant - Sakura', 
     image: 'images/restaurant/decorations/plant_sakura.png',
-    price: 450, 
+    price: 300, 
     purchased: false,
     active: false,
     description: 'Decorative sakura plant (right side)',
@@ -60,7 +60,7 @@ let decorations = [
   { 
     name: 'Plant - Bonsai', 
     image: 'images/restaurant/decorations/plant_bonsai.png',
-    price: 450, 
+    price: 300, 
     purchased: false,
     active: false,
     description: 'Decorative bonsai tree (right corner)',

@@ -61,7 +61,7 @@ let gameState = 'preparation'; // 'preparation' or 'serving'
 
 // money and day system
 let totalMoney = gameData.coins || 0;
-totalMoney = 10000;
+// totalMoney = 10000;
 let currentDay = gameData.day || 1;
 let coinIcon;
 
