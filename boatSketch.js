@@ -24,7 +24,7 @@ let restaurantButton;
 let homeButton; 
 // let unloadButton; 
 
-
+let numDives = parseInt(sessionStorage.getItem("numDives")) || 0; // load from session or start at 0 
 let isUnderwater = false;
 let yoff = 0;
 let isDiving = false;
@@ -131,8 +131,16 @@ function setup() {
   diveButton.style("font-family", "Quantico, sans-serif");
   diveButton.style("position", "fixed");
 
+  //DIVE ACTION
   diveButton.mousePressed(() => {
     if (!gearMenu.isVisible) { // prevent diving if gear menu is open
+      if (numDives >= 2) {
+        //Reached the ma
+        alert("You've reached the maximum of 2 dives today! Visit the restaurant to end the day.");
+        return; 
+      }
+      numDives++; // increment dive counter
+      sessionStorage.setItem("numDives", numDives); // persist across page refreshes
       nextPage = "dive.html";
       fading = true;
     }
@@ -178,7 +186,11 @@ function setup() {
   restaurantButton.position(width/2-400, height/2);
   // restaurantButton.mousePressed(startDive);
   restaurantButton.mousePressed(() => {
-    if (!gearMenu.isVisible) { // prevent going to restaurant if gear menu is open
+    // reset dive counter for new session
+    sessionStorage.setItem("numDives", 0);
+    numDives = 0;
+    if (!gearMenu.isVisible) { 
+      // prevent going to restaurant if gear menu is open
       nextPage = "sushi_bar.html";
       fading = true;
     }
@@ -201,6 +213,8 @@ function setup() {
   homeButton.position(30, 30);
   homeButton.mousePressed(() => {
   // navigate back to home screen
+    sessionStorage.setItem("numDives", 0);
+    numDives = 0;
     window.location.href = "start.html";
   });
 
@@ -317,8 +331,6 @@ function updateGearButtonPosition() {
 }
 
 
-
-
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   updateDiveButtonPosition(); 
@@ -416,6 +428,7 @@ function drawCharacter(boatY) {
     character.y += diveVelocity;
     if (character.y >= height / 1.5 + 40) {
       isUnderwater = true;
+      numDives++; 
       isDiving = false;
     }
   } else if (!isUnderwater) {
