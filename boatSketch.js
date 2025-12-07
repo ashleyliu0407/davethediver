@@ -122,19 +122,24 @@ function setup() {
   // Create dive button
   diveButton = createButton('DIVE');
   diveButton.size(80, 60);
+  
   diveButton.style("font-size", "15px");
   diveButton.style("color", "black");
   diveButton.style("background-color", "#ff532cff");
   diveButton.style("border-radius", "8px");
   diveButton.style("cursor", "pointer");
   diveButton.style("font-family", "Quantico, sans-serif");
-  diveButton.position(width/2-50, height/2);
+  diveButton.style("position", "fixed");
+
   diveButton.mousePressed(() => {
     if (!gearMenu.isVisible) { // prevent diving if gear menu is open
       nextPage = "dive.html";
       fading = true;
     }
   });
+  
+  // Position button at the ladder
+  updateDiveButtonPosition();
 
   // //window.location.href = "dive.html";
   // diveButton.mousePressed(() => {
@@ -169,7 +174,8 @@ function setup() {
   restaurantButton.style("cursor", "pointer");
   restaurantButton.style("font-family", "Quantico, sans-serif");
   // restaurantButton.position(width/2, height/2);
-  restaurantButton.position(width/2+50, height/2);
+  // /2+50 and /2 
+  restaurantButton.position(width/2-400, height/2);
   // restaurantButton.mousePressed(startDive);
   restaurantButton.mousePressed(() => {
     if (!gearMenu.isVisible) { // prevent going to restaurant if gear menu is open
@@ -278,8 +284,46 @@ function draw() {
 
 }
 
+
+//BUTTONS 
+//each will be resized along with the canvas in windowResized()
+//DIVE BUTTON 
+function updateDiveButtonPosition() {
+  // Reposition dive button next to the boat ladder
+  // Boat is centered at width/2 with width 450, so right edge is at width/2 + 225
+  let boatRightEdge = width / 2 + 225;
+  let diveButtonX = boatRightEdge + 20; 
+  let diveButtonY = height / 1.2 - 80; 
+  
+  diveButton.style("left", diveButtonX + "px");
+  diveButton.style("top", diveButtonY + "px");
+}
+
+//RESTAURANT
+function updateRestaurantButtonPosition() {
+  // Position restaurant button at bottom center
+  let restaurantButtonX = width / 2 - 400; 
+  let restaurantButtonY = height / 2; 
+  restaurantButton.style("left", restaurantButtonX + "px");
+  restaurantButton.style("top", restaurantButtonY + "px");
+}
+
+//DIVING PREP
+function updateGearButtonPosition() {
+  let gearButtonX = width/2 - 70;
+  let gearButtonY = height/2 + 80; 
+  gearButton.style("left", gearButtonX + "px");
+  gearButton.style("top", gearButtonY + "px");
+}
+
+
+
+
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  updateDiveButtonPosition(); 
+  updateRestaurantButtonPosition();
+  updateGearButtonPosition(); 
 }
 
 function mousePressed(){
