@@ -427,7 +427,7 @@ function createCustomer() {
 
   const newCustomer = {
     x: -100, // start off-screen left
-    y: platePositions[plateIndex].y - 140, // stand behind counter
+    y: platePositions[plateIndex].y - 144,
     targetX: targetX,
     plateIndex: plateIndex,
     type: customerType,

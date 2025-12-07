@@ -1,8 +1,11 @@
 // sushi_bar.js
-// array fro icons in the icon bar; icon under mouse; modal that is open
+// array for icons in the icon bar; icon under mouse; modal that is open; bg images
 let icons = [];
 let hoveredIcon = null;
 let activePopup = null;
+let backgroundImage;
+let tabletopImage;
+let bottomImage;
 
 // local storage
 let gameData = JSON.parse(localStorage.getItem("gameData")) || {
@@ -20,7 +23,7 @@ else {
   console.log("None fish in localStorage:", ingredients);
 }
 
-//bgm and sound effects
+// bgm and sound effects
 let bgMusic;
 let musicStarted = false;
 let walkSound;
@@ -39,7 +42,7 @@ let draggedIngredient = null;
 let tablePositions = [];
 let MAX_TABLE_POSITIONS = 6;
 
-// scrolling for panels / lists [used Claude to finish the scrolling part]
+// scrolling for panels / lists
 let scrollOffset = 0;
 let maxScroll = 0;
 
@@ -58,17 +61,17 @@ let gameState = 'preparation'; // 'preparation' or 'serving'
 
 // money and day system
 let totalMoney = gameData.coins || 0;
+// totalMoney = 10000;
 let currentDay = gameData.day || 1;
 let coinIcon;
 
 // earnings display
 let earningsMessages = []; // array of {text, x, y, alpha, timer}
 
-// warining message
+// warning message
 let noMenuShakeTimer = 0;
 
-// load all UI images before setup & draw
-// load all UI images before setup & draw
+// load all ui images before setup & draw
 function preload() {
   images.sleep = loadImage('images/restaurant/icons/sleep_icone.png');
   images.ingredient = loadImage('images/restaurant/icons/ingredient_icon.png');
@@ -77,6 +80,10 @@ function preload() {
   images.plate = loadImage('images/restaurant/decorations/plate.png');
   images.tray = loadImage('images/restaurant/decorations/tray.png');
   coinIcon = loadImage('images/restaurant/decorations/coin.png');
+  backgroundImage = loadImage('images/restaurant/decorations/background.png');
+  tabletopImage = loadImage('images/restaurant/decorations/tabletop.png');
+  bottomImage = loadImage('images/restaurant/decorations/bottom.png');
+  loadDecorationImages();
   
   // load background music and sound effects
   bgMusic = loadSound(
@@ -155,7 +162,6 @@ function setup() {
   if (failSound) placeSound.setVolume(0.4);
   if (toggleSound) toggleSound.setVolume(0.5)
 
-
   // icon bar: position, label, sprite
   icons = [
     { x: 350, y: 700, label: 'Sleep', img: images.sleep },
@@ -195,15 +201,15 @@ function setup() {
   }
   
   textFont('Courier New');
-  
+  loadDecorationsFromStorage();
   registerInventoryFish();
   checkForNewUnlocks();
 }
 
 function draw() {
-  background(45, 40, 38); // scene bg
+  imageMode(CORNER);
+  image(backgroundImage, 0, 0, 1400, 350);    // scene bg
   drawMoneyAndDay();      // money counter and day number (top)
-  drawCustomers();        // customers walking and ordering
   drawTable();            // counter surface + shadow
   drawTray();             // tray sprite (center)
   drawTablePositions();   // ingredients/dishes on table slots
@@ -211,6 +217,8 @@ function draw() {
   drawCookButton();       // prepare button
   drawPlates();           // plates + served dishes
   drawIcons();            // bottom icon bar
+  drawDecorations();      // decorations
+  drawCustomers();        // customers walking and ordering
   
   // only update customers when in serving mode
   if (gameState === 'serving') {
@@ -236,20 +244,19 @@ function draw() {
 function drawMoneyAndDay() {
   push();
   
-  // Coin icon
+  // coin icon
   imageMode(CORNER);
   image(coinIcon, 80, 20, 40, 40);
   
-  // Money amount
+  // money amount
   fill(255, 215, 0); // gold color
   stroke(0);
   strokeWeight(3);
   textAlign(LEFT, CENTER);
   textSize(28);
-  // text('$' + totalMoney, 70, 40);
   text('$' + totalMoney, 130, 40);
   
-  // Day indicator
+  // day indicator
   fill(255);
   stroke(0);
   strokeWeight(2);
@@ -296,10 +303,9 @@ function addEarningsMessage(text, x, y) {
 
 function drawTable() {
   push();
-  fill(160, 130, 95); noStroke();
-  rect(0, 350, 1400, 230); // tabletop
-  fill(100, 80, 60);
-  rect(0, 580, 1400, 220); // front face shadow
+  imageMode(CORNER);
+  image(tabletopImage, 0, 350, 1400, 230);  // tabletop at y=350
+  image(bottomImage, 0, 580, 1400, 220);     // bottom at y=580
   pop();
 }
 
@@ -326,7 +332,7 @@ function drawTraySlots() {
         textAlign(CENTER); textSize(10);
         text(slot.ingredient.dishName, slot.x, slot.y + 50);
         
-        // delete button only for dishes on tray [used Claude to finish this function]
+        // delete button only for dishes on tray
         let deleteX = slot.x + 30;
         let deleteY = slot.y - 30;
         let deleteSize = 20;
@@ -342,7 +348,7 @@ function drawTraySlots() {
         stroke(255); strokeWeight(2);
         circle(deleteX, deleteY, deleteSize);
         
-        // draw X
+        // draw x
         fill(255); noStroke();
         textAlign(CENTER, CENTER); textSize(14);
         text('×', deleteX, deleteY - 1);
@@ -392,7 +398,7 @@ function drawPlates() {
     if (plateDishes[i] !== null) {
       let dish = plateDishes[i];
       if (dishImages[dish.dishName]) {
-        image(dishImages[dish.dishName], 0, -18, 80, 80);
+        image(dishImages[dish.dishName], 0, -18, 60, 60);
       }
       // dish label
       fill(255, 215, 0); stroke(0); strokeWeight(2);
@@ -463,7 +469,7 @@ function drawIcons() {
     imageMode(CENTER);
     let imgSize = 80 * currentScale;
     
-    // Draw icon
+    // draw icon
     if (isLocked) {
       tint(100, 180); // darker and more transparent
     } else if (isHovered) { 
@@ -472,23 +478,23 @@ function drawIcons() {
     image(icon.img, 0, 0, imgSize, imgSize);
     noTint();
     
-    // Minimal lock overlay
+    // minimal lock overlay
     if (isLocked) {
-      // Simple lock icon (no circle background)
+      // simple lock icon (no circle background)
       fill(200);
       stroke(150);
       strokeWeight(2);
       
-      // Lock body
+      // lock body
       let lockSize = 20;
       rect(-lockSize/2, 0, lockSize, lockSize * 0.6, 2);
       
-      // Lock shackle
+      // lock shackle
       noFill();
       strokeWeight(3);
       arc(0, 0, lockSize * 0.6, lockSize * 0.6, PI, TWO_PI);
       
-      // Price below lock (clean, no background)
+      // price below lock (clean, no background)
       fill(255);
       noStroke();
       textAlign(CENTER, CENTER);
@@ -498,7 +504,7 @@ function drawIcons() {
       textStyle(NORMAL);
     }
     
-    // Label
+    // label
     textAlign(CENTER, CENTER);
     textSize(16 * currentScale);
     fill(isLocked ? 180 : 255);
@@ -514,10 +520,10 @@ function drawLockIcon(x, y, size) {
   stroke(100);
   strokeWeight(2);
   
-  // Lock body (rectangle)
+  // lock body (rectangle)
   rect(x - size/2, y, size, size * 0.6, 3);
   
-  // Lock shackle (arc on top)
+  // lock shackle (arc on top)
   noFill();
   strokeWeight(size * 0.15);
   arc(x, y, size * 0.6, size * 0.6, PI, TWO_PI);
@@ -525,10 +531,21 @@ function drawLockIcon(x, y, size) {
   pop();
 }
 
-// modal: shared scroller (Ingredients/Menu/Reservation) - generated by Claude
+// modal: shared scroller (ingredients/menu/reservation)
 function drawScrollablePopup() {
-  // Only allow scrollable popup for Ingredients/Menu
-  if (!activePopup || (activePopup.label !== 'Ingredients' && activePopup.label !== 'Menu' && activePopup.label !== 'Interior')) {
+  // move these declarations to the top
+  let popupWidth = 800, popupHeight = 600;
+  let popupX = width / 2 - popupWidth / 2;
+  let popupY = height / 2 - popupHeight / 2;
+  
+  // now interior check can use these variables
+  if (activePopup.label === 'Interior') {
+    drawInteriorPopup(popupX, popupY, popupWidth, popupHeight);
+    return;
+  }
+
+  // only allow scrollable popup for ingredients/menu
+  if (!activePopup || (activePopup.label !== 'Ingredients' && activePopup.label !== 'Menu')) {
     activePopup = null;
     return;
   }
@@ -536,9 +553,6 @@ function drawScrollablePopup() {
   // overlay + card
   fill(0, 0, 0, 150); 
   rect(0, 0, width, height);
-  let popupWidth = 800, popupHeight = 600;
-  let popupX = width / 2 - popupWidth / 2;
-  let popupY = height / 2 - popupHeight / 2;
   fill(255); stroke(0); strokeWeight(1.5);
   rect(popupX, popupY, popupWidth, popupHeight, 10);
   
@@ -556,14 +570,6 @@ function drawScrollablePopup() {
   // title
   fill(0); textAlign(CENTER, CENTER); textSize(28);
   text(activePopup.label, popupX + popupWidth / 2, popupY + 60);
-
-  if (activePopup.label === 'Interior') {
-    fill(100);
-    textAlign(CENTER, CENTER);
-    textSize(14);
-    text('Customize your restaurant interior', width / 2, height / 2 + 30);
-    return;c
-  }
   
   // pick data array by type (default to [] to avoid undefined errors)
   let dataArray = [];
@@ -635,7 +641,7 @@ function drawScrollablePopup() {
           
         }
       } else {
-        // menu - with lock/unlock UI
+        // menu - with lock/unlock ui
         let isLocked = !item.unlocked;
         let hasIngredients = hasIngredientsForDish(item.name);
         let canToggle = !isLocked && hasIngredients;
@@ -643,7 +649,7 @@ function drawScrollablePopup() {
         
         // dish name
         textSize(18); 
-        fill(isLocked ? 150 : 0);  // Gray if locked, black if unlocked
+        fill(isLocked ? 150 : 0);  // gray if locked, black if unlocked
         text(item.name, popupX + 150, cardY + 25);
         
         // price
@@ -653,7 +659,7 @@ function drawScrollablePopup() {
         
         // description
         textSize(14); 
-        fill(isLocked ? 150 : 100);  // Gray or dark gray
+        fill(isLocked ? 150 : 100);  // gray or dark gray
         text(item.description, popupX + 150, cardY + 85);
         
         // if locked: show lock overlay and requirements
@@ -682,9 +688,6 @@ function drawScrollablePopup() {
           
         } else if (!hasIngredients) {
           // no ingredients - show unavailable overlay
-          // fill(255, 220, 220, 110); // light red tint
-          // noStroke();
-          // rect(popupX + 30, cardY, popupWidth - 60, 120, 10);
           
           // show toggle button (disabled state - red background)
           let toggleX = popupX + popupWidth - 180;
@@ -720,7 +723,7 @@ function drawScrollablePopup() {
   pop();
 }
 
-// drawbbutton
+// draw button
 function drawButton(x, y, w, h, label, buttonColor) {
   fill(buttonColor); stroke(0); strokeWeight(1);
   rect(x, y, w, h, 5);
@@ -780,7 +783,7 @@ function drawSleepPopup() {
 }
 
 function drawUnlockNotification() {
-  // Show first notification in queue
+  // show first notification in queue
   if (unlockNotificationQueue.length === 0) return;
   
   let notification = unlockNotificationQueue[0];
@@ -800,7 +803,7 @@ function drawUnlockNotification() {
   strokeWeight(1);
   rect(cardX, cardY, cardWidth, cardHeight, 10);
   
-  // "UNLOCKED" badge at top
+  // "unlocked" badge at top
   fill(255, 215, 0);
   noStroke();
   textAlign(CENTER, CENTER);
@@ -828,7 +831,7 @@ function drawUnlockNotification() {
   textSize(16);
   text(notification.description, width / 2, cardY + 305);
   
-  // Show progress if multiple unlocks (e.g., "1 of 3")
+  // show progress if multiple unlocks (e.g., "1 of 3")
   if (unlockNotificationQueue.length > 1) {
     fill(150);
     textSize(11);
@@ -849,15 +852,15 @@ function drawReadyToServeButton() {
       return;
     }
 
-    // Check if any menu items are available
+    // check if any menu items are available
     let hasAvailableDishes = menuItems.some(item => 
       item.unlocked && item.available && hasIngredientsForDish(item.name)
     );
     
-    // Increment shake timer if it's active
+    // increment shake timer if it's active
     if (noMenuShakeTimer > 0) {
       noMenuShakeTimer++;
-      // Stop shaking after 2 seconds (120 frames at 60fps)
+      // stop shaking after 2 seconds (120 frames at 60fps)
       if (noMenuShakeTimer > 120) {
         noMenuShakeTimer = 0;
       }
@@ -871,12 +874,12 @@ function drawReadyToServeButton() {
     let isHovered = mouseX > buttonX - buttonWidth/2 && mouseX < buttonX + buttonWidth/2 &&
                     mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2;
     
-    // Dim the button if no dishes available
+    // dim the button if no dishes available
     noStroke();
     if (hasAvailableDishes) {
       fill(isHovered ? 255 : color(255, 255, 255, 200));
     } else {
-      fill(255, 255, 255, 100); // Dimmed when no dishes
+      fill(255, 255, 255, 100); // dimmed when no dishes
     }
     textAlign(CENTER, CENTER);
     textSize(isHovered && hasAvailableDishes ? 32 : 28);
@@ -891,22 +894,22 @@ function drawReadyToServeButton() {
       line(buttonX - 200, buttonY + 20, buttonX + 200, buttonY + 20);
     }
     
-    // Warning text - only shake if timer is active (triggered by failed click)
+    // warning text - only shake if timer is active (triggered by failed click)
     let warningY = buttonY + 50;
     let shakeOffset = 0;
     
-    // Apply shake effect only if shake timer is active
+    // apply shake effect only if shake timer is active
     if (noMenuShakeTimer > 0) {
       shakeOffset = sin(frameCount * 0.3) * 5;
     }
     
-    // Show red color only if no dishes available (whether shaking or not)
+    // show red color only if no dishes available (whether shaking or not)
     if (!hasAvailableDishes) {
       noStroke();
-      fill(255, 50, 50, 255); // RED
+      fill(255, 50, 50, 255); // red
     } else {
       noStroke();
-      fill(255, 255, 255, 180); // Normal white
+      fill(255, 255, 255, 180); // normal white
     }
     
     textSize(16);
@@ -915,7 +918,7 @@ function drawReadyToServeButton() {
          '** MUST SET YOUR MENU BEFORE OPENING; END ANYTIME YOU WANT **', 
          buttonX + shakeOffset, warningY);
     
-    // Tutorial/tips text (only show if dishes available OR on day 1)
+    // tutorial/tips text (only show if dishes available or on day 1)
     if (hasAvailableDishes || currentDay === 1) {
       fill(255, 255, 255, 180);
       textSize(14);
@@ -944,18 +947,24 @@ function drawReadyToServeButton() {
 }
 
 function mousePressed() {
+  // handle decoration placement
+  if (handleDecorationPlacement()) return;
+  
+  // handle right-click cancel
+  if (cancelPlacementMode()) return false;
+
   let hasAvailableDishes = menuItems.some(item => 
     item.unlocked && item.available && hasIngredientsForDish(item.name)
   );
 
-  // check for "Ready to Serve" button click during preparation
+  // check for "ready to serve" button click during preparation
   if (!musicStarted && bgMusic) {
     bgMusic.loop();
     musicStarted = true;
     console.log('Background music started!');
   }
 
-  // check for "Sold Out" button clicks during serving
+  // check for "sold out" button clicks during serving
   if (gameState === 'serving' && !activePopup) {
     if (checkSoldOutButtons()) {
       return; // click was handled, exit early
@@ -967,7 +976,7 @@ function mousePressed() {
     return;
   }
 
-  // check for "Ready to Serve" button click during preparation
+  // check for "ready to serve" button click during preparation
   if (!musicStarted && bgMusic) {
     bgMusic.loop();
     musicStarted = true;
@@ -975,7 +984,7 @@ function mousePressed() {
   }
 
   if (unlockNotificationQueue.length > 0) {
-    unlockNotificationQueue.shift(); // Remove first item from queue
+    unlockNotificationQueue.shift(); // remove first item from queue
     return;
   }
 
@@ -1088,7 +1097,7 @@ function mousePressed() {
       activePopup = null; scrollOffset = 0; return;
     }
     
-    // sleep modal: Yes/No
+    // sleep modal: yes/no
     if (activePopup.label === 'Sleep') {
       let buttonWidth = 200, buttonHeight = 65;
       let yesButtonX = width / 2 - buttonWidth - 30;
@@ -1183,7 +1192,7 @@ function mousePressed() {
         if (mouseX > toggleX && mouseX < toggleX + 140 &&
             mouseY > toggleY && mouseY < toggleY + 40) {
           
-          // only allow toggle if unlocked AND has ingredients
+          // only allow toggle if unlocked and has ingredients
           let item = menuItems[i];
           if (item.unlocked && hasIngredientsForDish(item.name)) {
             if (toggleSound) {
@@ -1204,6 +1213,12 @@ function mousePressed() {
         }
       }
     }
+
+    if (activePopup.label === 'Interior') {
+      if (handleInteriorClick(popupX, popupY, popupWidth, popupHeight)) {
+        return;
+      }
+    }
   }
   
   // open modal from icon bar
@@ -1221,7 +1236,7 @@ function mousePressed() {
   }
 }
 
-// drop handling (finish drag) - FIXED VERSION
+// drop handling (finish drag)
 function mouseReleased() {
   if (draggedIngredient) {
     // drop dish onto plate
@@ -1251,16 +1266,16 @@ function mouseReleased() {
       draggedIngredient = null; return;
     }
     
-    // ingredient: check if dropped on Ingredients icon to remove from table
+    // ingredient: check if dropped on ingredients icon to remove from table
     if (!draggedIngredient.isDish) {
-      // find the Ingredients icon
+      // find the ingredients icon
       let ingredientsIcon = icons.find(icon => icon.label === 'Ingredients');
       if (ingredientsIcon) {
         let d = dist(mouseX, mouseY, ingredientsIcon.x, ingredientsIcon.y);
         if (d < 80) {
           // find the ingredient and increase quantity
           const NAME = draggedIngredient.name;
-          const FRESH = draggedIngredient.freshness; // may be undefined for items like Rice
+          const FRESH = draggedIngredient.freshness; // may be undefined for items like rice
           // prefer exact (name, freshness) match
           let idx = ingredients.findIndex(ing => ing.name === NAME && ing.freshness === FRESH);
 
@@ -1270,14 +1285,14 @@ function mouseReleased() {
             const item = ingredients[idx];
             if (typeof item.quantity === 'number') {
               const oldQ = item.quantity;
-              item.quantity = oldQ + 1; // NO CAP
+              item.quantity = oldQ + 1; // no cap
               console.log(`RETURNED ${NAME} (${FRESH}) - quantity: ${oldQ} → ${item.quantity}`);
             } else {
-              // quantity undefined/null → IGNORE (leave unchanged)
+              // quantity undefined/null → ignore (leave unchanged)
               console.log(`RETURNED ${NAME} (${FRESH}) - quantity undefined, ignored`);
             }
           } else {
-            // no exact row → create a NEW inventory line (so it shows in modal) at quantity 1
+            // no exact row → create a new inventory line (so it shows in modal) at quantity 1
             let sameName = ingredients.find(ing => ing.name === NAME && ing.image);
             let inferredImage = sameName ? sameName.image
               : `images/restaurant/ingredients/${NAME.toLowerCase().replace(/\s+/g,'_')}.png`;
@@ -1285,7 +1300,7 @@ function mouseReleased() {
             ingredients.push({
               name: NAME,
               freshness: FRESH,
-              quantity: 1,           // NEW row starts at quantity 1
+              quantity: 1,           // new row starts at quantity 1
               image: inferredImage
             });
     
@@ -1323,7 +1338,7 @@ function mouseReleased() {
     // find nearest empty table spot
     if (!draggedIngredient.isDish && (draggedIngredient.fromTraySlot || draggedIngredient.fromTablePosition)) {
       
-      // fine the nearest empty table position to mouse
+      // find the nearest empty table position to mouse
       let nearestSpot = -1;
       let shortestDistance = Infinity;
       
@@ -1424,7 +1439,7 @@ function cookIngredientsInTray() {
   } else {
     // fail: restore ingredients back to their table positions
     console.log('Invalid recipe! Returning ingredients to table positions...');
-    if (failSound) {  // FIXED typo
+    if (failSound) {
       failSound.play();
     }
     
@@ -1432,10 +1447,10 @@ function cookIngredientsInTray() {
       let ingredient = traySlots[i].ingredient;
       let posIndex = ingredient.tablePositionIndex;
       
-      // ADDED: Check if original position is empty before returning there
+      // check if original position is empty before returning there
       if (posIndex !== undefined && posIndex >= 0 && posIndex < tablePositions.length && 
-          tablePositions[posIndex].ingredient === null) {  // ← NEW CHECK
-        // Original spot is empty - return there
+          tablePositions[posIndex].ingredient === null) {
+        // original spot is empty - return there
         tablePositions[posIndex].ingredient = { 
           name: ingredient.name, 
           isDish: false, 
@@ -1443,7 +1458,7 @@ function cookIngredientsInTray() {
         };
         console.log('Returned ' + ingredient.name + ' to original position ' + posIndex);
       } else {
-        // ADDED: Find alternative empty spot if original is occupied
+        // find alternative empty spot if original is occupied
         let foundSpot = false;
         for (let j = 0; j < tablePositions.length; j++) {
           if (tablePositions[j].ingredient === null) {
@@ -1468,29 +1483,29 @@ function cookIngredientsInTray() {
 }
 
 function mouseWheel(event) {
-  if (activePopup && (activePopup.label === 'Ingredients' || activePopup.label === 'Menu')) {
+  if (activePopup && (activePopup.label === 'Ingredients' || activePopup.label === 'Menu' || activePopup.label === 'Interior')) {
     scrollOffset += event.delta;
     scrollOffset = constrain(scrollOffset, 0, maxScroll);
     return false; // prevent page scroll
   }
 }
 
-// Helper function to return ingredient to inventory
+// helper function to return ingredient to inventory
 function returnIngredientToInventory(ingredient, location) {
   const name = ingredient.name;
   const freshness = ingredient.freshness;
   
-  // Find matching ingredient in inventory
+  // find matching ingredient in inventory
   let idx = ingredients.findIndex(ing => 
     ing.name === name && ing.freshness === freshness
   );
   
   if (idx !== -1) {
-    // Found it - increase quantity
+    // found it - increase quantity
     ingredients[idx].quantity++;
     console.log('Returned ' + name + ' (' + freshness + ') from ' + location + ' → quantity now: ' + ingredients[idx].quantity);
   } else {
-    // Not found - create new inventory entry
+    // not found - create new inventory entry
     let sameName = ingredients.find(ing => ing.name === name);
     let inferredImage = sameName ? sameName.image 
       : `images/restaurant/ingredients/${name.toLowerCase().replace(/\s+/g,'_')}.png`;
@@ -1510,17 +1525,17 @@ function endDay() {
   gameData.coins = totalMoney;
   gameData.day = currentDay;
 
-  // Reset game state
+  // reset game state
   gameState = 'preparation';
   customers = [];
   customerTimer = 0;
   
-  // Clear all plates (dishes are discarded)
+  // clear all plates (dishes are discarded)
   for (let i = 0; i < plateDishes.length; i++) {
     plateDishes[i] = null;
   }
   
-  // Return ingredients from table to inventory
+  // return ingredients from table to inventory
   for (let i = 0; i < tablePositions.length; i++) {
     if (tablePositions[i].ingredient && !tablePositions[i].ingredient.isDish) {
       returnIngredientToInventory(tablePositions[i].ingredient, 'table');
@@ -1528,7 +1543,7 @@ function endDay() {
     tablePositions[i].ingredient = null;
   }
   
-  // Return ingredients from tray to inventory
+  // return ingredients from tray to inventory
   for (let i = 0; i < traySlots.length; i++) {
     if (traySlots[i].ingredient) {
       if (!traySlots[i].ingredient.isDish) {
@@ -1540,7 +1555,7 @@ function endDay() {
     traySlots[i].ingredient = null;
   }
   
-  // Age all ingredients and remove expired ones
+  // age all ingredients and remove expired ones
   for (let i = ingredients.length - 1; i >= 0; i--) {
     let ing = ingredients[i];
     
@@ -1550,14 +1565,14 @@ function endDay() {
         let dayNum = parseInt(dayMatch[1]) + 1;
         ing.freshness = 'Day ' + dayNum;
         
-        // Remove if too old (Day 4+)
+        // remove if too old (day 4+)
         if (dayNum > 3) {
           console.log(ing.name + ' (Day ' + dayNum + ') expired - removed from inventory');
           ingredients.splice(i, 1);
           continue;
         }
         
-        // Remove if quantity is 0
+        // remove if quantity is 0
         if (ing.quantity !== undefined && ing.quantity <= 0) {
           console.log(ing.name + ' has no quantity left - removed from inventory');
           ingredients.splice(i, 1);
@@ -1566,9 +1581,11 @@ function endDay() {
     }
   }
 
-  // Save and navigate
+  // save and navigate
   gameData.inventory = ingredients;
   localStorage.setItem("gameData", JSON.stringify(gameData)); 
   console.log('Day ' + currentDay + ' begins! Total money: $' + totalMoney);
   window.location.href = "day.html";
 }
+
+document.addEventListener('contextmenu', event => event.preventDefault());

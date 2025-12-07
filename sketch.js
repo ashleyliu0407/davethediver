@@ -33,6 +33,7 @@ function setup(){
         localStorage.removeItem("gameData");
         localStorage.removeItem("caughtFishTypes");
         localStorage.removeItem("shownNotifications");
+        localStorage.removeItem("restaurantDecorations");
         playButton.style("transform", "scale(0.95)");
         playButton.style("background-color", "#003d80");
         window.location.href = "day.html";  
