@@ -121,11 +121,11 @@ function setup() {
 
   // Create dive button
   diveButton = createButton('DIVE');
-  diveButton.size(80, 60);
+  diveButton.size(80, 40);
   
   diveButton.style("font-size", "15px");
-  diveButton.style("color", "black");
-  diveButton.style("background-color", "#ff532cff");
+  diveButton.style("color", "#bddcfdff");
+  diveButton.style("background-color", "#084387ff");
   diveButton.style("border-radius", "8px");
   diveButton.style("cursor", "pointer");
   diveButton.style("font-family", "Quantico, sans-serif");
@@ -135,7 +135,8 @@ function setup() {
   diveButton.mousePressed(() => {
     if (!gearMenu.isVisible) { // prevent diving if gear menu is open
       if (numDives >= 2) {
-        //Reached the ma
+        //Reached the maximum amount of dives for the day 
+        //**could change this to a text box later */
         alert("You've reached the maximum of 2 dives today! Visit the restaurant to end the day.");
         return; 
       }
@@ -156,12 +157,12 @@ function setup() {
   // });
 
   // create gear button
-  gearButton = createButton('DIVING PREPARATION');
+  gearButton = createButton('SELECT GEAR');
   // gearButton = createButton("DIVER'S GEAR");
-  gearButton.size(140, 60);
+  gearButton.size(140, 50);
   gearButton.style("font-size", "14px");
-  gearButton.style("color", "#084387ff");
-  gearButton.style("background-color", "#bddcfdff"); 
+  gearButton.style("color", "#bddcfdff");
+  gearButton.style("background-color", "#084387ff"); 
   gearButton.style("border-radius", "8px");
   gearButton.style("cursor", "pointer");
   gearButton.style("font-family", "Quantico, sans-serif");
@@ -218,6 +219,8 @@ function setup() {
     window.location.href = "start.html";
   });
 
+
+
   
 }
 
@@ -254,6 +257,16 @@ function draw() {
     drawUnderwaterScene();
   }
 
+    if (showInstructions) {
+      restaurantButton.hide();
+      gearButton.hide();
+      diveButton.hide();
+    }else{
+      updateButtonVisibility();
+    }
+
+
+
   //Smooth transition to pages
   if (fading) {
     if (alpha === 0) {
@@ -279,20 +292,23 @@ function draw() {
     strokeWeight(2);
     rectMode(CORNER);
     fill(250);
-    rect(width/2+180, height/2-300, 440, 200, 20);
-  
+    const triShift = 45;
+    rect(width/2-390, height/2-20, 440, 200, 20);
+    triangle(width/2-20 + triShift, height/2+180, width/2-10 + triShift, height/2+200, width/2-30 + triShift, height/2+200);
+    
     // Text content
     noStroke();
     textFont("Quantico, sans-serif");
     fill(0);
     textAlign(LEFT);
     textSize(15);
+    textStyle(BOLD);
     text(
-      "DIVE to COLLECT fish\n\n" +
-      "• You can dive as many times as you’d like each day.\n\n" +
-      "• Your catches are automatically saved after every dive.\n\n" +
-      "• Visit the restaurant once you’re done diving!\n\n", 
-      width/2+200, height/2-250
+      "Hey there Dave - ready to fish?\n\n" +
+      "Dive up to TWO times per day\n and your catches will automatically save after every \ndive.\n\n" +
+      "Upgrade and equip your tools to catch more fish\n" +
+      "Visit the restaurant once you’re done diving!\n",
+      width/2-350, height/2+20
     );
   }
 
