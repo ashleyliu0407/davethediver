@@ -117,8 +117,10 @@ const weaponConfig = {
   "Netgun": {
     type: "CATCH",
     damage: 0,
-    projectileSpeed: 5,
-    range: 200
+    projectileSpeed: 8,
+    range: 350,
+    effectRadius: 120, // radius of net
+    entangleDuration: 1.5 // stun duration in seconds
   }
 }
 
@@ -224,6 +226,10 @@ function preload() {
   weaponImages.HarpoonHead = loadImage("images/weapons/HarpoonHead.png");
   weaponImages.SpearGun = loadImage("images/weapons/SpearGun.png");
   weaponImages.SpearProjectile = loadImage("images/weapons/SpearProjectile.png");
+  weaponImages.Netgun = loadImage("images/weapons/Netgun.png");
+  weaponImages.NetProjectile = loadImage("images/weapons/NetProjectile.png");
+  weaponImages.NetDeployed = loadImage("images/weapons/NetDeployed.png");
+  weaponImages.EntangledIcon = loadImage("images/weapons/EntangledIcon.png");
 
   //popup images
   menuPopupImg = loadImage("images/fish/menu.png");
@@ -1219,12 +1225,13 @@ function drawWeaponUI() {
   // 3. firearm weapon
   let firearm = "None";
   let displayFirearmImg = null;
+
   if (player.weapons["SpearGun"]) {
     firearm = "SpearGun";
     displayFirearmImg = weaponImages.SpearGun;
   } else if (player.weapons["Netgun"]) {
     firearm = "Netgun";
-    // displayFirearmImg = weaponImages.Netgun;
+    displayFirearmImg = weaponImages.Netgun;
   }
 
   // draw
@@ -1240,7 +1247,8 @@ function drawWeaponUI() {
   text("Weapons:", startX, titleY);
   
   // 2. 1X3 weapon slots
-  // melee
+
+  // Slot 1: melee
   let slot1X = startX;
   fill(0,50);
   stroke(255,150);
@@ -1248,6 +1256,9 @@ function drawWeaponUI() {
   if (player.currentWeapon === meleeWeapon) {
     stroke(highlightColor);
     strokeWeight(2); // thicker border for highlight
+  }
+  else {
+    strokeWeight(1);
   }
   rect(slot1X, startY, slotSize, slotSize, 5);
 
@@ -1270,6 +1281,9 @@ function drawWeaponUI() {
     stroke(highlightColor);
     strokeWeight(2); // thicker border for highlight
   }
+  else {
+    strokeWeight(1);
+  }
   rect(slot2X, startY, slotSize, slotSize, 5);
 
   fill(255);
@@ -1291,6 +1305,9 @@ function drawWeaponUI() {
     stroke(highlightColor);
     strokeWeight(2); // thicker border for highlight
   }
+  else {
+    strokeWeight(1);
+  }
   rect(slot3X, startY, slotSize, slotSize, 5);
 
   fill(255);
@@ -1304,6 +1321,21 @@ function drawWeaponUI() {
     text(firearm, slot3X + slotSize / 2, startY + slotSize / 2);
   }
 
+  // draw ammo count for firearm
+  if (firearm !== "None") {
+      let ammoCount = player.ammo[firearm];
+      // if ammo is infinity, show ∞, otherwise show the number
+      let ammoText = (ammoCount === Infinity || ammoCount === undefined) ? "∞" : ammoCount;
+
+      fill(255);
+      noStroke();
+      textAlign(RIGHT, BOTTOM);
+      textSize(14);
+      textStyle(BOLD);
+      text(ammoText, slot3X + slotSize - 5, startY + slotSize - 5);
+      textStyle(NORMAL);
+  }
+  
   pop();
 }
 

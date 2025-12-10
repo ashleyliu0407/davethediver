@@ -61,7 +61,7 @@ class Player {
             "Knife": true,
             "Harpoon": true,
             "SpearGun": false,
-            "Netgun": false
+            "Netgun": true
         }; // tracks owned weapons
 
         // read equipped firearm from storage
@@ -74,8 +74,8 @@ class Player {
 
         this.ammo = {
             "Harpoon": Infinity,
-            "SpearGun": Infinity, // can change to finite later
-            "Netgun": 0
+            "SpearGun": 10, // can change to finite later
+            "Netgun": 5
         }; // ammo count
         
         // harpoon state
@@ -424,6 +424,27 @@ class Player {
             else {
                 // no ammo, maybe play a sound or show a message
                 console.log("Out of SpearGun ammo!");
+            }
+        }
+        else if (this.currentWeapon === "Netgun") {
+            // check ammo
+            if (this.ammo["Netgun"] > 0) {
+                // play fire sound
+                if (fireSound) {
+                    fireSound.play(0, 0.8, 0.2); // lower pitch for heavy net
+                }
+
+                // create the projectile
+                let net = new NetProjectile(this.position.x, this.position.y, fireVel, config);
+                activeProjectiles.push(net);
+
+                // decrease ammo
+                this.ammo["Netgun"]--;
+            }
+            else {
+                // no ammo
+                // add a sound
+                console.log("Out of Netgun ammo!");
             }
         }
 

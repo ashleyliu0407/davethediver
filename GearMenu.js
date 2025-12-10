@@ -88,6 +88,7 @@ class GearMenu {
         // 0. setup
         translate(0,0);
         rectMode(CENTER);
+        textStyle(NORMAL);
 
         // 1. draw a semi-transparent background
         noStroke();

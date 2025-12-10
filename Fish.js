@@ -28,6 +28,10 @@ class Fish {
         this.attachedHarpoon = null; // reference to harpoon projectile
         this.dotTimer = 0; // Damage Over Time timer
 
+        // entangle properties
+        this.isEntangled = false;
+        this.entangleTimer = 0;
+
         // Add fallback color based on species if no image
         switch(this.type) {
             case "Mackerel": this.fallbackColor = color(180, 180, 190); break;
@@ -59,6 +63,15 @@ class Fish {
         // damage flash timer update
         if (this.damageFlashTimer > 0) {
             this.damageFlashTimer -= deltaTime / 1000;
+        }
+
+        // entangle logic
+        if (this.isEntangled) {
+            this.entangleTimer -= deltaTime / 1000;
+            if (this.entangleTimer <= 0) {
+                this.isEntangled = false;
+            }
+            return; // skip movement while entangled
         }
 
         // if attached to harpoon, let the harpoon control movement
@@ -188,6 +201,13 @@ class Fish {
         }
     }
 
+    // method to apply entangle status
+    applyEntangle(duration) {
+        if (this.health <= 0) return; // dead fish cannot be entangled
+        this.isEntangled = true;
+        this.entangleTimer = duration;
+    }
+
     draw() {
         let currentImg;
 
@@ -240,6 +260,19 @@ class Fish {
             pop();
         }
 
+        // draw entangle status icon
+        if (this.isEntangled && this.health > 0) {
+            push();
+            imageMode(CENTER);
+            let iconImg = weaponImages.EntangledIcon;
+            if (iconImg) {
+                //image(iconImg, this.x, this.y - this.size / 2 - 20, 24, 24);
+                image(iconImg, this.x, this.y - this.size / 2 - 15, 30, 30);
+            }
+            pop();
+        }
+
+        // health bar drawing
         if (this.healthShowTimer > 0 && this.health > 0) {
             push();
             rectMode(CENTER);
