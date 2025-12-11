@@ -11,7 +11,8 @@ let bottomImage;
 let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   day: 1,
   coins: 100,
-  inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}]
+  inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}],
+  interiorUnlocked: false
 };
 
 if  (gameData.inventory && gameData.inventory.length > 1) {
@@ -61,7 +62,7 @@ let gameState = 'preparation'; // 'preparation' or 'serving'
 
 // money and day system
 let totalMoney = gameData.coins || 0;
-// totalMoney = 10000;
+// totalMoney = 500;
 let currentDay = gameData.day || 1;
 let coinIcon;
 
@@ -210,6 +211,12 @@ function draw() {
   imageMode(CORNER);
   image(backgroundImage, 0, 0, 1400, 350);    // scene bg
   drawMoneyAndDay();      // money counter and day number (top)
+  if (!gameData.interiorUnlocked && totalMoney >= 400) {
+    gameData.interiorUnlocked = true;
+    localStorage.setItem("gameData", JSON.stringify(gameData));
+    console.log('Interior permanently unlocked!');
+  }
+
   drawTable();            // counter surface + shadow
   drawTray();             // tray sprite (center)
   drawTablePositions();   // ingredients/dishes on table slots
@@ -460,7 +467,7 @@ function drawIcons() {
   }
   // render icons with scale + tint on hover
   for (let icon of icons) {
-    let isLocked = icon.requiredMoney && totalMoney < icon.requiredMoney;
+    let isLocked = icon.requiredMoney && !gameData.interiorUnlocked && totalMoney < icon.requiredMoney;
     let isHovered = (hoveredIcon === icon) && !isLocked;
     let currentScale = isHovered ? 1.25 : 0.95;
     
@@ -1223,7 +1230,7 @@ function mousePressed() {
   
   // open modal from icon bar
   if (hoveredIcon && !activePopup) {
-    let isLocked = hoveredIcon.requiredMoney && totalMoney < hoveredIcon.requiredMoney;
+    let isLocked = hoveredIcon.requiredMoney && !gameData.interiorUnlocked && totalMoney < hoveredIcon.requiredMoney;
     if (isLocked) {
       console.log(hoveredIcon.label + ' is locked! Need $' + hoveredIcon.requiredMoney);
       if (errorSound) {
