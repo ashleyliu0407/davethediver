@@ -12,8 +12,13 @@ let gameData = JSON.parse(localStorage.getItem("gameData")) || {
   day: 1,
   coins: 100,
   inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}],
-  interiorUnlocked: false
+  interiorUnlocked: false,
+  rating: 5.0
 };
+
+if (gameData.rating === undefined) {
+  gameData.rating = 5.0;
+}
 
 if  (gameData.inventory && gameData.inventory.length > 1) {
   ingredients = gameData.inventory;
@@ -28,7 +33,8 @@ let dailyStats = {
   dishesSold: 0,
   baseEarnings: 0,
   tipsEarned: 0,
-  totalEarnings: 0
+  totalEarnings: 0,
+  ratingChange: 0
 };
 
 // bgm and sound effects
@@ -71,6 +77,7 @@ let gameState = 'preparation'; // 'preparation' or 'serving'
 let totalMoney = gameData.coins || 0;
 // totalMoney = 500;
 let currentDay = gameData.day || 1;
+let currentRating = gameData.rating || 5.0; 
 let coinIcon;
 
 // earnings display
@@ -281,7 +288,33 @@ function drawMoneyAndDay() {
   strokeWeight(2);
   textSize(20);
   text('Day ' + currentDay, 130, 80);
+
+  let ratingX = width - 250;
+  let ratingY = 40;
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  noStroke();
   
+  let fullStars = floor(currentRating);
+  let hasHalfStar = (currentRating % 1) >= 0.5;
+  
+  for (let i = 0; i < 5; i++) {
+    let starX = ratingX + (i * 40);
+    
+    if (i < fullStars) {
+      fill(255, 215, 0); // gold
+    } else if (i === fullStars && hasHalfStar) {
+      fill(255, 215, 0, 150); // semi-transparent gold
+    } else {
+      fill(100, 100, 100, 100); // gray
+    }
+    text('★', starX, ratingY);
+  }
+  fill(255);
+  stroke(0);
+  strokeWeight(2);
+  textSize(18);
+  text(currentRating.toFixed(1), ratingX + 83, ratingY + 40);
   pop();
 }
 
@@ -1705,6 +1738,21 @@ function drawDailyRecapPopup() {
   // thank you message - two lines
   itemY += 55;
   noStroke();
+  textAlign(CENTER);
+  if (dailyStats.ratingChange !== 0) {
+    let changeText = dailyStats.ratingChange > 0 ? 
+      '+' + dailyStats.ratingChange.toFixed(1) + ' ★' : 
+      dailyStats.ratingChange.toFixed(1) + ' ★';
+    fill(dailyStats.ratingChange > 0 ? color(100, 200, 100) : color(200, 100, 100));
+    textSize(16);
+    text('Rating: ' + changeText, width / 2, itemY);
+  } else {
+    fill(150);
+    textSize(14);
+    text('Rating: no change', width / 2, itemY);
+  }
+  
+  itemY += 30;
   fill(150);
   textAlign(CENTER);
   textSize(12);
@@ -1729,6 +1777,8 @@ function drawDailyRecapPopup() {
 
 function endDay() {
   currentDay++;
+  currentRating = constrain(currentRating + dailyStats.ratingChange, 0, 5);
+  gameData.rating = currentRating;
   gameData.coins = totalMoney;
   gameData.day = currentDay;
 
@@ -1792,7 +1842,8 @@ function endDay() {
     dishesSold: 0,
     baseEarnings: 0,
     tipsEarned: 0,
-    totalEarnings: 0
+    totalEarnings: 0,
+    ratingChange: 0
   };
 
   // save and navigate

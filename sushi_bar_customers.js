@@ -158,6 +158,11 @@ function updateCustomers() {
           dailyStats.baseEarnings += customer.earningsInfo.base;
           dailyStats.tipsEarned += customer.earningsInfo.tip;
           dailyStats.totalEarnings += customer.earningsInfo.total;
+          dailyStats.ratingChange += customer.earningsInfo.ratingChange;
+
+          currentRating = constrain(currentRating + customer.earningsInfo.ratingChange, 0, 5);
+          console.log('Rating updated: ' + customer.earningsInfo.ratingChange.toFixed(2) + 
+                      ' → New rating: ' + currentRating.toFixed(1));
           
           // Play coin sound when money is added
           if (coinSound) {
@@ -371,6 +376,10 @@ function checkSoldOutButtons() {
             mouseY > buttonY && mouseY < buttonY + buttonHeight) {
           
           console.log('Sold out - customer leaving without payment');
+          let ratingPenalty = -0.05;
+          dailyStats.ratingChange += ratingPenalty;
+          currentRating = constrain(currentRating + ratingPenalty, 0, 5);
+          console.log('Rating penalty: ' + ratingPenalty + ' → New rating: ' + currentRating.toFixed(1));
           
           // customer leaves immediately
           customer.state = 'leaving';
@@ -481,24 +490,24 @@ function calculateEarnings(orderedDish, servedDish, servedIngredients) {
   const orderedItem = getMenuItemByName(orderedDish);
   if (!orderedItem) {
     console.log('ERROR: Could not find menu item for ' + orderedDish);
-    return { base: 0, tip: 0, total: 0, displayText: 'Error!' };
+    return { base: 0, tip: 0, total: 0, ratingChange: 0, displayText: 'Error!' };  // ADDED ratingChange: 0
   }
   const orderedBase = priceNumber(orderedItem.price);
 
   // freshness (avg day number across served ingredients)
   let totalDay = 0, cnt = 0;
   for (const name of (servedIngredients || [])) {
-    if (String(name).trim().toLowerCase() === 'rice') continue; // pass on rice
+    if (String(name).trim().toLowerCase() === 'rice') continue;
     const ing = ingredients.find(i => i.name === name);
-    if (!ing) continue; // skip undefined items safely
+    if (!ing) continue;
     const m = String(ing.freshness || '').match(/Day\s+(\d+)/i);
     if (m) { totalDay += Number(m[1]); cnt++; }
   }
 
-  // If no counted fish, treat as fresh to avoid penalty.
-  const isFresh = (cnt === 0) ? true : (totalDay / cnt) < 2; // Day 1 ⇒ fresh
+  const isFresh = (cnt === 0) ? true : (totalDay / cnt) < 2;
 
   let base = 0, tip = 0, tipReason = '', displayText = '';
+  let ratingChange = 0;  // NEW: Rating change for this customer
 
   if (servedDish === orderedDish) {
     // correct orders
@@ -506,31 +515,34 @@ function calculateEarnings(orderedDish, servedDish, servedIngredients) {
     if (isFresh) {
       tip = 10;
       tipReason = 'Perfect. Exceptionally fresh!';
+      ratingChange = 0.08;
     } else {
       tip = 5;
       tipReason = 'Good. Could be a bit fresher.';
+      ratingChange = 0.02;
     }
   } else {
     // wrong orders
     const servedItem = getMenuItemByName(servedDish);
-    const servedBase = servedItem ? priceNumber(servedItem.price) : orderedBase; // fallback
+    const servedBase = servedItem ? priceNumber(servedItem.price) : orderedBase;
     base = Math.round(servedBase * 0.5);
     if (isFresh) {
       tip = 3;
       tipReason = 'Mixed up, but delicious and fresh.';
+      ratingChange = -0.05;
     } else {
       tip = 0;
       tipReason = 'Not my order, and not very fresh.';
+      ratingChange = -0.12;
     }
   }
 
   const total = base + tip;
 
-  // nice display
   displayText = tip > 0
     ? `$${base} + $${tip} tip\n(${tipReason})`
     : `$${base}\n(${tipReason})`;
 
-  console.log(`Earnings: $${base} base + $${tip} tip = $${total}`);
-  return { base, tip, total, displayText, tipReason };
+  console.log(`Earnings: $${base} base + $${tip} tip = $${total}, Rating: ${ratingChange > 0 ? '+' : ''}${ratingChange.toFixed(2)}`);
+  return { base, tip, total, ratingChange, displayText, tipReason };  // ADDED ratingChange to return
 }
