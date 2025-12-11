@@ -17,10 +17,13 @@ class GearMenu {
         this.colors = {
             bg: color(40, 60,90,240), // Deep blue semi-transparent background
             slotBg: color(0,80), // Darker blue for slots
-            highlight: color(255, 200, 0), // selected highlight
-            btnEquip: color(50,200,50), // green equip button
-            btnUnequip: color(200,50,50), // red unequip button
-            btnLocked: color(150), // gray locked button
+            iconBg: color(0,0,0,50), // transparent black for icon bg
+
+            // for button
+            btnBuy: color(50,200,50),     // green buy button
+            btnNoMoney: color(150,50,50), // red no money button
+            btnOwned: color(100),         // gray owned button
+            btnLocked: color(50),         // dark gray locked/unknown
             
             // for tabs
             textActive: color(255), // white active text
@@ -37,7 +40,8 @@ class GearMenu {
         // initialize data from localStorage
         this.gameData = JSON.parse(localStorage.getItem('gameData')) || {
             coins: 100,
-            weapons: {'SpearGun': 1}, // for test
+            weapons: {'Netgun': 1}, // for test
+            discoveredWeapons: ['Netgun'],
             equippedFirearm: null,
             upgrades: {AirTank: 1, CargoBox: 1}
         };
@@ -47,6 +51,22 @@ class GearMenu {
             this.gameData.upgrades = {AirTank: 1, CargoBox: 1};
         }
 
+        // weapon shop data
+        this.weaponConfig = {
+            "SpearGun": {
+                name: "Spear Gun",
+                price: 300,
+                description: "Standard diving firearm.\nGood for damage.",
+                img: this.images["SpearGun"]
+            },
+            "Netgun": {
+                name: "Net Gun",
+                price: 500,
+                description: "Catch/Control fish.\nWorks on small/med fish.",
+                img: this.images["Netgun"]
+            }
+        };
+        
         // upgrade levels
         this.upgradeConfig = {
             "AirTank": [
@@ -107,7 +127,7 @@ class GearMenu {
         textAlign(CENTER, TOP);
         textSize(28);
         textFont("Quantico");
-        text("DIVER'S GEAR", cx, cy - this.menuHeight/2 + 20);
+        text("DIVER'S SHOP", cx, cy - this.menuHeight/2 + 20);
 
         // 4. draw tabs
         this.drawTabs(cx, cy);
@@ -199,15 +219,155 @@ class GearMenu {
     }
     // helper function: draw firearms tab content
     drawFirearmsContent(cx, cy) {
+        let startY = cy - 30;
+        let spacing = 110;
+        let keys = Object.keys(this.weaponConfig);
 
-        // draw Spear Gun slot (need to change: drawWeaponRow by going through the weapons list)
-        this.drawWeaponRow("SpearGun", this.images["SpearGun"], cx, cy-20);
+        for (let i = 0; i < keys.length; i++) {
+            let weaponName = keys[i];
+            let yPos = startY + i * spacing;
+            this.drawWeaponRow(weaponName, this.weaponConfig[weaponName], cx, yPos);
+        }
+
     }
+
+    // helper function: draw a weapon row
+    drawWeaponRow(weaponName, config, cx, y) {
+        let rowW = 520;
+        let rowH = 100;
+        let padding = 10;
+
+        let isDiscovered = this.gameData.discoveredWeapons && this.gameData.discoveredWeapons.includes(weaponName);
+        let isOwned = this.gameData.weapons && this.gameData.weapons[weaponName] > 0;
+
+        // background
+        rectMode(CENTER);
+        fill(this.colors.slotBg);
+        stroke(255,20);
+        strokeWeight(1);
+        rect(cx, y, rowW, rowH, 8);
+
+        // Left side area: weapon image
+        let iconSize = rowH - 2 * padding;
+        let iconCenterX = (cx - rowW/2) + padding + iconSize/2;
+
+        noStroke();
+        fill(this.colors.iconBg);
+        rect(iconCenterX, y, iconSize, iconSize, 5);
+
+        // draw image
+        let img = config.img;
+        if (img) {
+            imageMode(CENTER);
+            let maxDim = iconSize - 10; // leave some padding
+            let scale = min(maxDim / img.width, maxDim / img.height);  
+            push();
+            if (!isDiscovered) {
+                tint(0,180); // dark tint for undiscovered
+            }
+            else {
+                noTint();
+            }
+
+            image(img, iconCenterX, y, img.width * scale, img.height * scale);
+            pop();
+        }
+        
+        // Middle area: Text info
+        // postioning for text and button
+        let btnWidth = 100;
+        let btnH = 40;
+
+        let textStartX = iconCenterX + iconSize/2 + 15; // beside icon
+        let btnLeftEdge = cx + rowW/2 - btnWidth - padding * 2; 
+        let maxTextWidth = btnLeftEdge - textStartX - 10; // 10 for extra padding
+
+        rectMode(CORNER);
+        textAlign(LEFT, TOP);
+        noStroke();
+
+        // undiscovered weapon
+        if (!isDiscovered) {
+            // title
+            fill(255, 120);
+            textSize(20);
+            textStyle(BOLD);
+            text("UNKNOWN WEAPON", textStartX, y - rowH/2 + 15);
+
+            // description
+            fill(150,200);
+            textSize(12);
+            textStyle(NORMAL);
+            text("Find blueprint in weapon boxes\nto unlock.", textStartX, y - rowH/2 + 50, maxTextWidth);
+        }
+        // discovered weapon
+        else {
+            // title
+            fill(230);
+            textSize(20);
+            textStyle(BOLD);
+            text(config.name.toUpperCase(), textStartX, y - rowH/2 + 15);
+
+            // description
+            fill(180);
+            textSize(12);
+            textStyle(NORMAL);
+            text(config.description, textStartX, y - rowH/2 + 50, maxTextWidth);
+        }
+
+        // Right side area: button
+        let btnX = btnLeftEdge + btnWidth / 2;
+        
+        rectMode(CENTER);
+        textAlign(CENTER, CENTER);
+        textSize(16);
+
+        if (!isDiscovered) {
+            // locked button
+            fill(this.colors.btnLocked);
+            stroke(255, 50);
+            rect(btnX, y, btnWidth, btnH, 5);
+
+            fill(255, 100);
+            noStroke();
+            text("LOCKED", btnX, y);
+        }
+        else if (isOwned) {
+            // Owned button
+            fill(this.colors.btnOwned);
+            stroke(255, 50);
+            rect(btnX, y, btnWidth, btnH, 5);
+
+            fill(255, 200);
+            noStroke();
+            text("OWNED", btnX, y);
+        }
+        else {
+            // Buy button
+            let canAfford = (this.gameData.coins >= config.price);
+            
+            if (canAfford) {
+                fill(this.colors.btnBuy);
+                stroke(255);
+            }
+            else {
+                fill(100);
+                stroke(255, 20);
+            }
+            rect(btnX, y, btnWidth, btnH, 5);
+
+            fill(255);
+            noStroke();
+            text(`$ ${config.price}`, btnX, y);
+        }
+
+    }
+    
 
     // helper function: draw upgrade tab content
     drawUpgradeContent(cx, cy) {
         // oxygen tank upgrade row
-        this.drawUpgradeRow("AirTank", "Air Tank", this.images["AirTank"], cx, cy - 30);
+        this.drawUpgradeRow("AirTank", "Oxygen Tank", this.images["AirTank"], cx, cy - 30);
 
         // cargo box upgrade row
         this.drawUpgradeRow("CargoBox", "Cargo Box", this.images["CargoBox"], cx, cy + 80);
@@ -288,7 +448,7 @@ class GearMenu {
 
             if (canAfford) {
                 fill(this.colors.btnUpgrade);
-                stroke(255, 50);
+                stroke(255);
             }
             else {
                 fill(100);
@@ -319,97 +479,6 @@ class GearMenu {
         }
     }
 
-    // helper function: draw a weapon row
-    drawWeaponRow(weaponName, img, cx, y) {
-        let rowW = 520;
-        let rowH = 100;
-
-        // count number owned
-        let count = (this.gameData.weapons && this.gameData.weapons[weaponName])? this.gameData.weapons[weaponName] : 0;
-        // check if equipped
-        let isEquipped = (this.gameData.equippedFirearm === weaponName);
-
-        // background
-        rectMode(CENTER);
-        fill(this.colors.slotBg);
-        stroke(255,20);
-        if (isEquipped) {
-            stroke(this.colors.highlight); // highlight if equipped
-            strokeWeight(3);
-        } else {
-            strokeWeight(1);
-        }
-        rect(cx, y, rowW, rowH, 8);
-
-        // Left side area: weapon image
-        let imgAreaW = rowW * 0.65;
-        let imgX = cx - rowW/2 + imgAreaW/2;
-
-        // draw image
-        if (img) {
-            imageMode(CENTER);
-            let ratio = img.width / img.height;
-            let displayH = 80; // can change: select size of image
-            let displayW = displayH * ratio;
-            image(img, imgX, y, displayW, displayH);
-        }
-
-        // Weapon name(top left of img area)
-        noStroke();
-        fill(230);
-        textAlign(LEFT, TOP);
-        textSize(20);
-        text(weaponName, cx - rowW/2 + 15, y - rowH/2 + 10);
-
-        // Count (bottom left of img area)
-        textAlign(RIGHT, BOTTOM);
-        textSize(16);
-        fill(180);
-        text("Owned: " + count, cx - rowW/2 + imgAreaW - 15, y + rowH/2 - 10);
-
-        // Right side area: button
-        let btnX = cx + rowW/2 - 70;
-        let btnW = 100;
-        let btnH = 40;
-
-        if (count > 0) {
-            // if owned some
-            if (isEquipped) {
-                // show unequip button
-                fill(this.colors.btnUnequip);
-                stroke(255);
-                rect(btnX, y, btnW, btnH, 5);
-                fill(255);
-                noStroke();
-                textAlign(CENTER, CENTER);
-                textSize(16);
-                text("UNEQUIP", btnX, y);
-            }
-            else {
-                // show equip button
-                fill(this.colors.btnEquip);
-                stroke(255);
-                rect(btnX, y, btnW, btnH, 5);
-                fill(0);
-                noStroke();
-                textAlign(CENTER, CENTER);
-                textSize(16);
-                text("EQUIP", btnX, y);
-            }
-        }
-        else {
-            // no weapon owned, show locked button
-            fill(this.colors.btnLocked);
-            stroke(255,100);
-            rect(btnX, y, btnW, btnH, 5);
-            fill(200);
-            noStroke();
-            textAlign(CENTER, CENTER);
-            textSize(16);
-            text("EMPTY", btnX, y);
-        }
-
-    }
 
     // hnadle mouse pressed event
     handleClick(mx, my) {
@@ -446,18 +515,26 @@ class GearMenu {
         if (this.currentTab === "FIREARMS") {
             // if speargun button clicked (need to change: go through weapon list)
             // (The coordinate calculations here must be exactly the same as those in the "drawWeaponRow" function)
-            let rowY = cy - 20;
+            let startY = cy - 30;
+            let spacing = 110;
+            let keys = Object.keys(this.weaponConfig);
+
             let rowW = 520;
-            let btnX = cx + rowW/2 - 70;
-            let btnW = 100;
+            let btnWidth = 100;
             let btnH = 40;
+            let padding = 10;
+            let btnX = cx + rowW/2 - btnWidth /2  - padding * 2;
 
             // check if click is within button area
-            if (mx >= btnX - btnW/2 && mx <= btnX + btnW/2 &&
-                my >= rowY - btnH/2 && my <= rowY + btnH/2) {
-                    
-                    this.toggleWeapon("SpearGun");
-                    return true; // click handled
+            for (let i = 0; i < keys.length; i++) {
+                let weaponName = keys[i];
+                let yPos = startY + i * spacing;
+
+                if (mx >= btnX - btnWidth/2 && mx <= btnX + btnWidth/2 &&
+                    my >= yPos - btnH/2 && my <= yPos + btnH/2) {
+                        this.handleWeaponBuy(weaponName);
+                        return true; // click handled
+                }
             }
         }
         else if (this.currentTab === "UPGRADE") {
@@ -474,6 +551,34 @@ class GearMenu {
         }
 
         return true; // click handled if inside menu but not on button
+
+    }
+
+    // helper function: handle weapon buy
+    handleWeaponBuy(weaponName) {
+        if (!this.gameData.discoveredWeapons.includes(weaponName)) return; // not discovered, do nothing
+
+        let isOwned = this.gameData.weapons && this.gameData.weapons[weaponName] > 0;
+        if (isOwned) return; // already owned, do nothing
+
+        let price = this.weaponConfig[weaponName].price;
+        if (this.gameData.coins >= price) {
+            // deduct coins
+            this.gameData.coins -= price;
+            // add weapon to inventory
+            if (!this.gameData.weapons) {
+                this.gameData.weapons = {};
+            }
+            this.gameData.weapons[weaponName] = 1; // add 1 count
+
+            // save back to localStorage
+            localStorage.setItem('gameData', JSON.stringify(this.gameData));
+            console.log(`Bounght ${weaponName}`);
+        }
+        else {
+            console.log(`Not enough coins to buy ${weaponName}`);
+        }
+
 
     }
 
@@ -508,24 +613,6 @@ class GearMenu {
                 console.log(`Not enough coins to upgrade ${key}`);
             }
         }
-    }
-    // helper function: equip/unequip weapon
-    toggleWeapon(weaponName) {
-        // make sure weapon is owned
-        let count = (this.gameData.weapons && this.gameData.weapons[weaponName])? this.gameData.weapons[weaponName] : 0;
-        if (count <= 0) return; // not owned, do nothing
-
-        // logic to equip/unequip
-        if (this.gameData.equippedFirearm === weaponName) {
-            // unequip
-            this.gameData.equippedFirearm = null;
-        } else {
-            // equip
-            this.gameData.equippedFirearm = weaponName;
-        }
-
-        // save back to localStorage
-        localStorage.setItem('gameData', JSON.stringify(this.gameData));
     }
 
 }

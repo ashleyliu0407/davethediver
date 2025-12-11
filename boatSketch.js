@@ -4,11 +4,19 @@ if (!gameData) {
     day: 1,
     coins: 100,
     inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}],
-    weapons: {'SpearGun': 1}, // for test
-    equippedFirearm: null
+    weapons: {'Netgun': 1}, // for test
+    discoveredWeapons: ['Netgun'],
+    equippedFirearm: null,
+    upgrades: {AirTank: 1, CargoBox: 1}
   };
   localStorage.setItem("gameData", JSON.stringify(gameData));
   console.log("Initialized gameData in localStorage.");
+}
+else {
+  if (!gameData.discoveredWeapons) {
+    gameData.discoveredWeapons = ['Netgun'];
+    localStorage.setItem('gameData', JSON.stringify(gameData));
+  }
 }
 
 //mbackground music
@@ -59,8 +67,9 @@ let bgSpeed=1, fgSpeed=0.8, mgSpeed=0;
 let gearMenu;
 let gearButton;
 let weaponIcons = {};
-
 let upgradeIcons = {};
+
+let preDiveMenu;
 
 
 function preload(){
@@ -78,6 +87,10 @@ function preload(){
 
     //load weapon icons
     weaponIcons["SpearGun"] = loadImage("images/weapons/SpearGun_handbook.png");
+    weaponIcons["Netgun"] = loadImage("images/weapons/Netgun_handbook.png");
+
+    weaponIcons["Harpoon"] = loadImage("images/weapons/Harpoon.png");
+    weaponIcons["Knife"] = loadImage("images/weapons/Knife.png");
 
     // upgrade icons
     upgradeIcons["AirTank"] = loadImage("images/upgrade/AirTank.png");
@@ -100,6 +113,7 @@ function setup() {
   // initialize weapon menu
   let allMenuIcons = {...weaponIcons, ...upgradeIcons};
   gearMenu = new GearMenu(allMenuIcons);
+  preDiveMenu = new PreDiveMenu(allMenuIcons);
   
 
   //parallax
@@ -133,17 +147,18 @@ function setup() {
 
   //DIVE ACTION
   diveButton.mousePressed(() => {
-    if (!gearMenu.isVisible) { // prevent diving if gear menu is open
-      if (numDives >= 2) {
-        //Reached the maximum amount of dives for the day 
-        //**could change this to a text box later */
-        alert("You've reached the maximum of 2 dives today! Visit the restaurant to end the day.");
-        return; 
-      }
-      numDives++; // increment dive counter
-      sessionStorage.setItem("numDives", numDives); // persist across page refreshes
-      nextPage = "dive.html";
-      fading = true;
+    // prevent diving if gear menu is open
+    if (gearMenu.isVisible) return;
+    if (numDives >= 2) {
+      //Reached the maximum amount of dives for the day 
+      //**could change this to a text box later */
+      alert("You've reached the maximum of 2 dives today! Visit the restaurant to end the day.");
+      return; 
+    }
+
+    // open pre-dive menu
+    if (!fading && !showInstructions) {
+      preDiveMenu.toggle();
     }
   });
   
@@ -224,6 +239,13 @@ function setup() {
   
 }
 
+function startActualDive() {
+  numDives++; // increment dive counter
+  sessionStorage.setItem("numDives", numDives); // persist across page refreshes
+  nextPage = "dive.html";
+  fading = true;
+}
+
 // helpers to toggle gear menu
 function toggleGearMenu() {
   gearMenu.toggle();
@@ -232,7 +254,7 @@ function toggleGearMenu() {
 
 // Update button visibility based on gear menu state
 function updateButtonVisibility() {
-  if (gearMenu.isVisible) {
+  if (gearMenu.isVisible || preDiveMenu.isVisible) {
     diveButton.hide();
     restaurantButton.hide();
     gearButton.hide();
@@ -251,6 +273,9 @@ function draw() {
     // draw gear menu if visible
     if (gearMenu.isVisible) {
       gearMenu.display();
+    }
+    if (preDiveMenu.isVisible) {
+      preDiveMenu.display();
     }
     
   } else {
@@ -362,6 +387,14 @@ function mousePressed(){
 
   if (gearMenu.isVisible) {
     let handled = gearMenu.handleClick(mouseX, mouseY);
+
+    updateButtonVisibility();
+    
+    if (handled) return;
+  }
+
+  if (preDiveMenu.isVisible) {
+    let handled = preDiveMenu.handleClick(mouseX, mouseY);
 
     updateButtonVisibility();
     
