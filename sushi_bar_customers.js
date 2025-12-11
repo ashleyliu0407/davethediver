@@ -4,9 +4,9 @@
 // customer system variables
 let customers = [];
 let customerTimer = 0;
-let customerCreateInterval = 300; // this will be randomized
-let minCreateInterval = 720; // minimum 12 seconds at 60fps
-let maxCreateInterval = 1200; // maximum 20 seconds at 60fps
+let customerCreateInterval = 240; // this will be randomized
+let minCreateInterval = 360; // minimum 12 seconds at 60fps
+let maxCreateInterval = 720; // maximum 20 seconds at 60fps
 let customerSideImages = {}; // side walking images
 let customerFrontImages = {}; // front facing images
 

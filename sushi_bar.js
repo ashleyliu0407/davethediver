@@ -979,22 +979,23 @@ function drawReadyToServeButton() {
          '** MUST SET YOUR MENU BEFORE OPENING; END ANYTIME YOU WANT **', 
          buttonX + shakeOffset, warningY);
     
-    // tutorial/tips text (only show if dishes available or on day 1)
-    if (hasAvailableDishes || currentDay === 1) {
-      fill(255, 255, 255, 180);
-      textSize(14);
-      
-      if (currentDay === 1) {
-        text('1. Click MENU icon: enable dishes you want to serve', buttonX, buttonY + 80);
-        text('2. Click INGREDIENTS icon: place items on table or throw it away', buttonX, buttonY + 100);
-        text('3. Drag ingredients to TRAY: click COOK to make dishes and drag finished dishes to plates', buttonX, buttonY + 120);
-        text('4. Click SLEEP icon: advance to the next day', buttonX, buttonY + 140);
-        text('TIP: Match customer orders and freshness matters! Ingredients auto-discard after 3 days. Average freshness < 2 brings more tips.', buttonX, buttonY + 160);
-      } else {
-        text('tips: select dishes based on your available ingredients', buttonX, buttonY + 75);
-      }
-    }
+    // tutorial/tips
+    fill(255, 255, 255, 180);
+    textSize(14);
     
+    if (currentDay === 1) {
+      text('1. Click MENU: choose which dishes you want to serve.', buttonX, buttonY + 80);
+      text('2. Click INGREDIENTS: place items on the table or throw them away.', buttonX, buttonY + 100);
+      text('3. Drag ingredients to the TRAY, click COOK, then drag dishes to plates.', buttonX, buttonY + 120);
+      text('4. Click SLEEP to end the day; it auto-ends when everything is sold out.', buttonX, buttonY + 140);
+      text('5. If a dish runs out after someone orders, move near the customer to use SOLD OUT.', buttonX, buttonY + 160);
+      text('TIP: Match, freshness, wait time, and decorations all affect tips & rating. Higher rating gives bonus!', buttonX, buttonY + 180);
+    } else {
+      text('Tips & rating depend on match, freshness, wait time, and restaurant decorations.', buttonX, buttonY + 75);
+      text('Higher rating gives a bonus — no bonus if you sell 0 dishes.', buttonX, buttonY + 95);
+      text('If a dish runs out, move near the customer and click the SOLD OUT button.', buttonX, buttonY + 115);
+      text('After you earn some money, try using the Interior menu to decorate and upgrade your restaurant.', buttonX, buttonY + 135);
+    }    
     pop();
     
     this.readyButtonBounds = {
@@ -1637,6 +1638,12 @@ function checkIfAllIngredientsSoldOut() {
       break;
     }
   }
+
+  for (let dish of plateDishes) {
+    if (dish !== null) {
+      return false;  // there are still dishes on plates
+    }
+  }
   
   return !hasIngredientsLeft;
 }
@@ -1843,7 +1850,7 @@ function getRatingBonusFromRating(rating) {
 
 function getDecorationScore() {
   if (typeof decorations === 'undefined' || !decorations) return 0;
-  return decorations.length || 0;
+  return decorations.filter(d => d && d.placed !== false).length;
 }
 
 function endDay() {
