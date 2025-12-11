@@ -34,7 +34,8 @@ let dailyStats = {
   baseEarnings: 0,
   tipsEarned: 0,
   totalEarnings: 0,
-  ratingChange: 0
+  ratingChange: 0,
+  ratingBonus: 0
 };
 
 // bgm and sound effects
@@ -245,7 +246,7 @@ function draw() {
   if (gameState === 'serving') {
     updateCustomers();
     if (!activePopup && checkIfAllIngredientsSoldOut()) {
-      console.log('All ingredients sold out! Showing recap...');
+      dailyStats.ratingBonus = getRatingBonusFromRating(currentRating);
       activePopup = { label: 'DailyRecap' };
     }
   }
@@ -314,7 +315,7 @@ function drawMoneyAndDay() {
   stroke(0);
   strokeWeight(2);
   textSize(18);
-  text(currentRating.toFixed(1), ratingX + 83, ratingY + 40);
+  text(currentRating.toFixed(2), ratingX + 83, ratingY + 40);
   pop();
 }
 
@@ -1707,12 +1708,53 @@ function drawDailyRecapPopup() {
   textSize(12);
   text('· · · · · · · · · · · · · · · · · · · ·', width / 2, itemY + 45);
   
+  // NEW: Rating bonus/penalty
+  itemY += itemSpacing;
+  textAlign(LEFT);
+  fill(0);
+  textSize(15);
+  text('Rating Bonus', popupX + 60, itemY);
+  
+  // Show star rating with description
+  fill(100);
+  textSize(13);
+  let ratingDesc = '';
+  if (currentRating >= 5) {
+    ratingDesc = '★★★★★ Perfect!';
+  } else if (currentRating >= 4) {
+    ratingDesc = '★★★★☆ Great';
+  } else if (currentRating >= 3) {
+    ratingDesc = '★★★☆☆ Good';
+  } else {
+    ratingDesc = '★★☆☆☆ Needs work';
+  }
+  text(ratingDesc, popupX + 60, itemY + 20);
+  
+  // Show bonus/penalty amount (right aligned)
+  textAlign(RIGHT);
+  textSize(20);
+  if (dailyStats.ratingBonus > 0) {
+    fill(100, 200, 100); // green for bonus
+    text('+$' + dailyStats.ratingBonus, popupX + popupWidth - 60, itemY + 10);
+  } else if (dailyStats.ratingBonus < 0) {
+    fill(200, 100, 100); // red for penalty
+    text('-$' + Math.abs(dailyStats.ratingBonus), popupX + popupWidth - 60, itemY + 10);
+  } else {
+    fill(150, 150, 150); // gray for no change
+    text('$0', popupX + popupWidth - 60, itemY + 10);
+  }
+  
+  // dotted line
+  textAlign(CENTER);
+  fill(200);
+  textSize(12);
+  text('· · · · · · · · · · · · · · · · · · · ·', width / 2, itemY + 45);
+  
   // subtotal section
   itemY += itemSpacing + 10;
   stroke(0);
   strokeWeight(1);
   line(popupX + 50, itemY, popupX + popupWidth - 50, itemY);
-  
   // total
   itemY += 35;
   noStroke();
@@ -1732,27 +1774,13 @@ function drawDailyRecapPopup() {
   strokeWeight(2);
   textAlign(RIGHT);
   textSize(32);
-  text('$' + dailyStats.totalEarnings, popupX + popupWidth - 60, itemY);
+  let finalTotal = dailyStats.totalEarnings + dailyStats.ratingBonus;
+  text('$' + finalTotal, popupX + popupWidth - 60, itemY);
   textStyle(NORMAL);
   
   // thank you message - two lines
   itemY += 55;
   noStroke();
-  textAlign(CENTER);
-  if (dailyStats.ratingChange !== 0) {
-    let changeText = dailyStats.ratingChange > 0 ? 
-      '+' + dailyStats.ratingChange.toFixed(1) + ' ★' : 
-      dailyStats.ratingChange.toFixed(1) + ' ★';
-    fill(dailyStats.ratingChange > 0 ? color(100, 200, 100) : color(200, 100, 100));
-    textSize(16);
-    text('Rating: ' + changeText, width / 2, itemY);
-  } else {
-    fill(150);
-    textSize(14);
-    text('Rating: no change', width / 2, itemY);
-  }
-  
-  itemY += 30;
   fill(150);
   textAlign(CENTER);
   textSize(12);
@@ -1775,7 +1803,26 @@ function drawDailyRecapPopup() {
   }
 }
 
+function getRatingBonusFromRating(rating) {
+  if (rating == 5) {
+    return 50;
+  } else if (rating >= 4.5) {
+    return 30;
+  } else if (rating >= 4) {
+    return 20;
+  } else if (rating >= 3) {
+    return 0;
+  } else if (rating >= 2) {
+    return -30;
+  } else {
+    return -60;
+  }
+}
+
 function endDay() {
+  dailyStats.ratingBonus = getRatingBonusFromRating(currentRating);
+  totalMoney += dailyStats.ratingBonus;
+
   currentDay++;
   currentRating = constrain(currentRating + dailyStats.ratingChange, 0, 5);
   gameData.rating = currentRating;
@@ -1843,7 +1890,8 @@ function endDay() {
     baseEarnings: 0,
     tipsEarned: 0,
     totalEarnings: 0,
-    ratingChange: 0
+    ratingChange: 0,
+    ratingBonus: 0
   };
 
   // save and navigate
