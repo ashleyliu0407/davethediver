@@ -365,7 +365,9 @@ function handleInteriorClick(popupX, popupY, popupWidth, popupHeight) {
             item.instances = [];
             console.log('Removed ' + item.name);
           }
-          if (errorSound) errorSound.play();
+          if (failSound) {
+            failSound.play();
+          }
           
           // save after removal
           saveDecorationsToStorage();
@@ -382,7 +384,9 @@ function handleInteriorClick(popupX, popupY, popupWidth, popupHeight) {
             // check if already at max
             if (item.maxInstances && item.instances.length >= item.maxInstances) {
               console.log('Already placed maximum instances of ' + item.name);
-              if (errorSound) errorSound.play();
+              if (failSound) {
+                failSound.play();
+              }
             } else {
               placementMode = item;
               activePopup = null;
@@ -431,7 +435,9 @@ function handleDecorationPlacement() {
   if (intersectsTable) {
     // error: decoration would overlap table
     console.log('Cannot place decorations on or overlapping the table area!');
-    if (errorSound) errorSound.play();
+    if (failSound) {
+      failSound.play();
+    }
     // don't exit placement mode, let them try again
     return false;
   }
@@ -440,7 +446,9 @@ function handleDecorationPlacement() {
     // check max instances before placing
     if (placementMode.maxInstances && placementMode.instances.length >= placementMode.maxInstances) {
       console.log('Max instances reached for ' + placementMode.name);
-      if (errorSound) errorSound.play();
+      if (failSound) {
+        failSound.play();
+      }
       placementMode = null;
       return true;
     }
@@ -458,7 +466,9 @@ function handleDecorationPlacement() {
     // cancel placement mode if clicking on ui
     console.log('Cancelled placement mode');
     placementMode = null;
-    if (errorSound) errorSound.play();
+    if (failSound) {
+      failSound.play();
+    }
     return true;
   }
 }

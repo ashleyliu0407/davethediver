@@ -49,6 +49,8 @@ let coinSound;
 let placeSound;
 let cookSound;
 let toggleSound;
+let achievementSound;
+let achievementPlayedThisRecap = false;
 
 // drag state for ingredient
 let draggedIngredient = null;
@@ -155,6 +157,12 @@ function preload() {
     () => console.log('Toggle sound loaded!'),
     (err) => console.error('Error loading toggleSound:', err)
   );
+
+  achievementSound = loadSound(
+    'sounds/restaurant/achievement.mp3',
+    () => console.log('Achievement sound loaded!'),
+    (err) => console.error('Error loading achievement sound:', err)
+  );
   
   for (let ingredient of ingredients) {ingredientImages[ingredient.name] = loadImage(ingredient.image);}
   for (let item of menuItems) {menuImages[item.name] = loadImage(item.image);}
@@ -171,11 +179,11 @@ function setup() {
   if (bgMusic) bgMusic.setVolume(0.08);
   if (walkSound) walkSound.setVolume(1.8);
   if (eatSound) eatSound.setVolume(0.5);
-  if (errorSound) errorSound.setVolume(0.6);
+  if (errorSound) errorSound.setVolume(0.4);
   if (coinSound) coinSound.setVolume(0.5);
   if (placeSound) placeSound.setVolume(0.4);
   if (cookSound) cookSound.setVolume(1.2);
-  if (failSound) placeSound.setVolume(0.4);
+  if (failSound) failSound.setVolume(0.3);
   if (toggleSound) toggleSound.setVolume(0.5)
 
   // icon bar: position, label, sprite
@@ -1051,7 +1059,9 @@ function mousePressed() {
         mouseY > buttonY - buttonHeight/2 && mouseY < buttonY + buttonHeight/2) {
 
       // check if any menu items are available
-      let hasAvailableDishes = menuItems.some(item => item.available);
+      let hasAvailableDishes = menuItems.some(item => 
+        item.unlocked && item.available && hasIngredientsForDish(item.name)
+      );
       
       if (!hasAvailableDishes) {
         console.log('Cannot open restaurant - no dishes available on menu!');
@@ -1158,10 +1168,13 @@ function mousePressed() {
       let buttonY = popupY + 460;
       // yes -> end day
       if (mouseX > yesButtonX && mouseX < yesButtonX + buttonWidth &&
-          mouseY > buttonY && mouseY < buttonY + buttonHeight) {
-        console.log('Day ended - Going to sleep');
-        endDay();
-        activePopup = null; return;
+        mouseY > buttonY && mouseY < buttonY + buttonHeight) {
+        console.log('Confirmed sleep - show daily recap first');
+        // compute rating bonus for this recap
+        dailyStats.ratingBonus = getRatingBonusFromRating(currentRating);
+        // open recap popup
+        activePopup = { label: 'DailyRecap' };
+        return;
       }
       // no -> close
       if (mouseX > noButtonX && mouseX < noButtonX + buttonWidth &&
@@ -1629,6 +1642,12 @@ function checkIfAllIngredientsSoldOut() {
 }
 
 function drawDailyRecapPopup() {
+  if (!achievementPlayedThisRecap && achievementSound) {
+    achievementSound.setVolume(1);
+    achievementSound.play();
+    achievementPlayedThisRecap = true;
+  }
+
   // overlay + card
   fill(0, 0, 0, 150); 
   rect(0, 0, width, height);
@@ -1804,6 +1823,9 @@ function drawDailyRecapPopup() {
 }
 
 function getRatingBonusFromRating(rating) {
+  if (dailyStats.dishesSold === 0) {
+    return 0;
+  }
   if (rating == 5) {
     return 50;
   } else if (rating >= 4.5) {
@@ -1819,12 +1841,16 @@ function getRatingBonusFromRating(rating) {
   }
 }
 
+function getDecorationScore() {
+  if (typeof decorations === 'undefined' || !decorations) return 0;
+  return decorations.length || 0;
+}
+
 function endDay() {
   dailyStats.ratingBonus = getRatingBonusFromRating(currentRating);
   totalMoney += dailyStats.ratingBonus;
 
   currentDay++;
-  currentRating = constrain(currentRating + dailyStats.ratingChange, 0, 5);
   gameData.rating = currentRating;
   gameData.coins = totalMoney;
   gameData.day = currentDay;

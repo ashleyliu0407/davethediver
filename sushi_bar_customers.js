@@ -37,6 +37,29 @@ function loadCustomerImages() {
   }
 }
 
+// apply per-customer modifiers such as tipMultiplier before money is added
+function applyCustomerTipModifier(customer) {
+  if (!customer || !customer.earningsInfo || customer.modifiersApplied) return;
+
+  let info = customer.earningsInfo;
+  let multiplier = (typeof customer.tipMultiplier === 'number') ? customer.tipMultiplier : 1.0;
+
+  if (multiplier !== 1.0) {
+    // adjust tip and total; keep base the same
+    info.tip = Math.round(info.tip * multiplier * 100) / 100;
+    info.total = info.base + info.tip;
+
+    // refresh display text to show updated tip
+    if (info.tip > 0) {
+      info.displayText = `$${info.base} + $${info.tip} tip\n(${info.tipReason})`;
+    } else {
+      info.displayText = `$${info.base}\n(${info.tipReason})`;
+    }
+  }
+
+  customer.modifiersApplied = true;
+}
+
 function updateCustomers() {
   // create new customers
   customerTimer++;
@@ -94,13 +117,40 @@ function updateCustomers() {
       if (customer.turnTimer >= 20) {
         customer.state = 'ordering';
         customer.facing = 'front';
+
+        // start wait timer when they actually begin ordering
+        customer.orderStartTime = millis();
+
+        // one-time rating bonus for cozy environment customers
+        if (customer.envCompliment && !customer.envBonusApplied) {
+          customer.envRatingBonus = 0.2;   // store it
+          customer.envBonusApplied = true;
+        }
       }
     } else if (customer.state === 'ordering') {
-      // show the order as dialogue
-      customer.dialogue = customer.order;
+      if (!customer.hasWaitedTooLong) {
+        if (customer.envCompliment) {
+          customer.dialogue = customer.order + '\nNice environment!';
+        } else {
+          customer.dialogue = customer.order;
+        }
+      }
+
+      // waiting-time penalty: if they wait more than 20 seconds
+      if (!customer.hasWaitedTooLong && customer.orderStartTime !== null) {
+        let waitedMs = millis() - customer.orderStartTime;
+        if (waitedMs > 25000) { // > 25 seconds
+          customer.hasWaitedTooLong = true;
+          customer.dialogue = customer.order + "\nI've been waiting...";
+          // lower this customer's tips by 20%
+          customer.tipMultiplier = 0.8;
+          // store rating penalty to apply after they finish
+          customer.waitRatingPenalty = -0.07;
+        }
+      }
       // waiting for food - check if dish is on their plate
       let plateIndex = customer.plateIndex;
-      if (plateDishes[plateIndex] !== null) {
+       if (plateDishes[plateIndex] !== null) {
         // dish served!
         let servedDish = plateDishes[plateIndex].dishName;
         let servedIngredients = plateDishes[plateIndex].ingredientList || [];
@@ -108,18 +158,8 @@ function updateCustomers() {
         // Calculate earnings
         let earnings = calculateEarnings(customer.order, servedDish, servedIngredients);
         
-        // Set customer dialogue based on correctness
-        if (servedDish === customer.order) {
-          customer.dialogue = 'Thanks!';
-        } else {
-          customer.dialogue = 'It can be better.';
-        }
-        
         // Store earnings info for display
         customer.earningsInfo = earnings;
-        
-        // preserve the intended after-eating comment
-        customer.postEatDialogue = customer.dialogue;
 
         customer.state = 'eating';
         customer.eatTimer = 0;
@@ -147,6 +187,9 @@ function updateCustomers() {
     } else if (customer.state === 'postComment') {
       // brief window to display the after-eating comment and earnings
       customer.postTimer++;
+      if (customer.earningsInfo && !customer.modifiersApplied) {
+        applyCustomerTipModifier(customer);
+      }
       if (customer.postTimer >= 90) { // ~1.5s to read earnings
         // ADD MONEY TO TOTAL FIRST (before leaving)
         if (customer.earningsInfo && !customer.moneyAdded) {
@@ -158,11 +201,18 @@ function updateCustomers() {
           dailyStats.baseEarnings += customer.earningsInfo.base;
           dailyStats.tipsEarned += customer.earningsInfo.tip;
           dailyStats.totalEarnings += customer.earningsInfo.total;
-          dailyStats.ratingChange += customer.earningsInfo.ratingChange;
 
-          currentRating = constrain(currentRating + customer.earningsInfo.ratingChange, 0, 5);
-          console.log('Rating updated: ' + customer.earningsInfo.ratingChange.toFixed(2) + 
-                      ' → New rating: ' + currentRating.toFixed(1));
+          // collect all rating pieces:
+          // 1) from food quality (calculateEarnings)
+          // 2) décor compliment bonus (if any)
+          // 3) waiting-time penalty (if any)
+          const decorBonus   = customer.envRatingBonus    || 0;
+          const waitPenalty  = customer.waitRatingPenalty || 0;
+          const foodRating   = customer.earningsInfo.ratingChange || 0;
+          const totalRatingDelta = foodRating + decorBonus + waitPenalty;
+
+          dailyStats.ratingChange += totalRatingDelta;
+          currentRating = constrain(currentRating + totalRatingDelta, 0, 5);
           
           // Play coin sound when money is added
           if (coinSound) {
@@ -285,7 +335,15 @@ function drawCustomers() {
           strokeWeight(2);
           textAlign(CENTER);
           textSize(16);
-          text(customer.dialogue, customer.x, customer.y - 90);
+          const lines = String(customer.dialogue || '').split('\n');
+          const lineHeight = 18;
+          const totalHeight = (lines.length - 1) * lineHeight;
+          const baseY = customer.y - 95;       // slightly higher than -90
+          const startY = baseY - totalHeight;  // if 2+ lines, shift the whole block upward
+
+          for (let i = 0; i < lines.length; i++) {
+            text(lines[i], customer.x, startY + i * lineHeight);
+          }
         }
         // if customer is ordering, check if dish is still available
         if (customer.state === 'ordering') {
@@ -457,6 +515,11 @@ function createCustomer() {
     walkSoundPlaying: false // flag to track if walk sound is currently playing
   };
 
+  let decorScore = (typeof getDecorationScore === 'function') ? getDecorationScore() : 0;
+  let complimentChance = constrain(decorScore * 0.05, 0, 0.3);
+  if (random() < complimentChance) {
+    newCustomer.envCompliment = true;
+  }
   customers.push(newCustomer);
   console.log('New customer (' + customerType + ') ordering: ' + randomDish);
 }
@@ -519,7 +582,7 @@ function calculateEarnings(orderedDish, servedDish, servedIngredients) {
     } else {
       tip = 5;
       tipReason = 'Good. Could be a bit fresher.';
-      ratingChange = 0.02;
+      ratingChange = 0.04;
     }
   } else {
     // wrong orders
