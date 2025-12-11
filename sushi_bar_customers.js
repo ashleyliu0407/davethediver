@@ -153,6 +153,11 @@ function updateCustomers() {
           totalMoney += customer.earningsInfo.total;
           customer.moneyAdded = true; // flag to prevent double-adding
           console.log('Added $' + customer.earningsInfo.total + ' to total. New total: $' + totalMoney);
+
+          dailyStats.dishesSold++;
+          dailyStats.baseEarnings += customer.earningsInfo.base;
+          dailyStats.tipsEarned += customer.earningsInfo.tip;
+          dailyStats.totalEarnings += customer.earningsInfo.total;
           
           // Play coin sound when money is added
           if (coinSound) {

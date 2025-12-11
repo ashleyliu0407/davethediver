@@ -24,6 +24,13 @@ else {
   console.log("None fish in localStorage:", ingredients);
 }
 
+let dailyStats = {
+  dishesSold: 0,
+  baseEarnings: 0,
+  tipsEarned: 0,
+  totalEarnings: 0
+};
+
 // bgm and sound effects
 let bgMusic;
 let musicStarted = false;
@@ -230,6 +237,10 @@ function draw() {
   // only update customers when in serving mode
   if (gameState === 'serving') {
     updateCustomers();
+    if (!activePopup && checkIfAllIngredientsSoldOut()) {
+      console.log('All ingredients sold out! Showing recap...');
+      activePopup = { label: 'DailyRecap' };
+    }
   }
   
   // draw dragged item on top
@@ -238,6 +249,7 @@ function draw() {
   // modal: sleep or scrollable (ingredients/menu/reservation)
   if (activePopup) {
     if (activePopup.label === 'Sleep') {drawSleepPopup();} 
+    else if (activePopup.label === 'DailyRecap') {drawDailyRecapPopup();}
     else {drawScrollablePopup();}
   }
   
@@ -1124,6 +1136,22 @@ function mousePressed() {
         activePopup = null; return;
       }
     }
+
+    // daily recap modal: continue button
+    if (activePopup.label === 'DailyRecap') {
+      let buttonWidth = 300;
+      let buttonHeight = 60;
+      let buttonX = width / 2 - buttonWidth / 2;
+      let buttonY = popupY + popupHeight - 100;
+      
+      if (mouseX > buttonX && mouseX < buttonX + buttonWidth &&
+          mouseY > buttonY && mouseY < buttonY + buttonHeight) {
+        console.log('Continuing to next day');
+        endDay();
+        activePopup = null;
+        return;
+      }
+    }
     
     // ingredients modal: place item onto first free table slot
     if (activePopup.label === 'Ingredients') {
@@ -1527,6 +1555,178 @@ function returnIngredientToInventory(ingredient, location) {
   }
 }
 
+function checkIfAllIngredientsSoldOut() {
+  // FIRST: Check if there are still customers present
+  // If yes, don't end the day yet - let them finish
+  if (customers.length > 0) {
+    return false; // NOT sold out yet, customers still being served
+  }
+  
+  // check if there are any ingredients left with quantity > 0
+  let hasIngredientsLeft = false;
+  
+  for (let ingredient of ingredients) {
+    // skip rice (it's infinite)
+    if (ingredient.name === 'Rice') continue;
+    
+    // check if this ingredient has quantity
+    if (ingredient.quantity !== undefined && ingredient.quantity > 0) {
+      hasIngredientsLeft = true;
+      break;
+    }
+  }
+  
+  // also check if there are ingredients on table or tray
+  for (let pos of tablePositions) {
+    if (pos.ingredient && pos.ingredient.name !== 'Rice') {
+      hasIngredientsLeft = true;
+      break;
+    }
+  }
+  
+  for (let slot of traySlots) {
+    if (slot.ingredient && slot.ingredient.name !== 'Rice') {
+      hasIngredientsLeft = true;
+      break;
+    }
+  }
+  
+  return !hasIngredientsLeft;
+}
+
+function drawDailyRecapPopup() {
+  // overlay + card
+  fill(0, 0, 0, 150); 
+  rect(0, 0, width, height);
+  
+  let popupWidth = 450;
+  let popupHeight = 600;
+  let popupX = width / 2 - popupWidth / 2;
+  let popupY = height / 2 - popupHeight / 2;
+  
+  // receipt-style card with slight texture
+  fill(255); 
+  stroke(0); 
+  strokeWeight(1.5);
+  rect(popupX, popupY, popupWidth, popupHeight, 10);
+  
+  // perforated edge effect at top
+  noStroke();
+  for (let i = 0; i < 20; i++) {
+    fill(240);
+    circle(popupX + 20 + (i * 22), popupY, 8);
+  }
+  
+  // header
+  fill(0); 
+  textAlign(CENTER, CENTER); 
+  textSize(16);
+  text('DAY ' + currentDay + ' SUMMARY', width / 2, popupY + 40);
+  
+  // date/time stamp style
+  fill(150);
+  textSize(11);
+  text('━━━━━━━━━━━━━━━━━', width / 2, popupY + 65);
+  
+  // receipt items
+  textAlign(LEFT);
+  let itemY = popupY + 120;
+  let itemSpacing = 65;
+  
+  // dishes sold
+  fill(0);
+  textSize(15);
+  text('Dishes Sold', popupX + 60, itemY);
+  fill(100);
+  textSize(13);
+  text('x' + dailyStats.dishesSold, popupX + 60, itemY + 20);
+  
+  // base earnings aligned right
+  fill(0);
+  textAlign(RIGHT);
+  textSize(20);
+  text('$' + dailyStats.baseEarnings, popupX + popupWidth - 60, itemY + 10);
+  
+  // dotted line
+  textAlign(CENTER);
+  fill(200);
+  textSize(12);
+  text('· · · · · · · · · · · · · · · · · · · ·', width / 2, itemY + 45);
+  
+  // tips
+  itemY += itemSpacing;
+  textAlign(LEFT);
+  fill(0);
+  textSize(15);
+  text('Customer Tips', popupX + 60, itemY);
+  fill(100);
+  textSize(13);
+  text('gratuity', popupX + 60, itemY + 20);
+  
+  fill(255, 180, 0);
+  textAlign(RIGHT);
+  textSize(20);
+  text('+$' + dailyStats.tipsEarned, popupX + popupWidth - 60, itemY + 10);
+  
+  // dotted line
+  textAlign(CENTER);
+  fill(200);
+  textSize(12);
+  text('· · · · · · · · · · · · · · · · · · · ·', width / 2, itemY + 45);
+  
+  // subtotal section
+  itemY += itemSpacing + 10;
+  stroke(0);
+  strokeWeight(1);
+  line(popupX + 50, itemY, popupX + popupWidth - 50, itemY);
+  
+  // total
+  itemY += 35;
+  noStroke();
+  textAlign(LEFT);
+  fill(0);
+  textSize(18);
+  textStyle(BOLD);
+  text('TOTAL', popupX + 60, itemY);
+  
+  // coin icon
+  imageMode(CENTER);
+  image(coinIcon, popupX + popupWidth - 110, itemY, 30, 30);
+  
+  // total amount
+  fill(255, 215, 0);
+  stroke(0);
+  strokeWeight(2);
+  textAlign(RIGHT);
+  textSize(32);
+  text('$' + dailyStats.totalEarnings, popupX + popupWidth - 60, itemY);
+  textStyle(NORMAL);
+  
+  // thank you message - two lines
+  itemY += 55;
+  noStroke();
+  fill(150);
+  textAlign(CENTER);
+  textSize(12);
+  text("We're getting closer to becoming", width / 2, itemY);
+  text("the best sushi in town...", width / 2, itemY + 18);
+  
+  // continue button - minimal style
+  let buttonY = popupY + popupHeight - 60;
+  let isButtonHovered = mouseX > width/2 - 80 && mouseX < width/2 + 80 &&
+                        mouseY > buttonY - 20 && mouseY < buttonY + 20;
+  
+  fill(isButtonHovered ? 0 : 100);
+  textSize(16);
+  text('[GO TO SLEEP]', width / 2, buttonY);
+  
+  if (isButtonHovered) {
+    stroke(0);
+    strokeWeight(1);
+    line(width/2 - 55, buttonY + 10, width/2 + 55, buttonY + 10);
+  }
+}
+
 function endDay() {
   currentDay++;
   gameData.coins = totalMoney;
@@ -1587,6 +1787,13 @@ function endDay() {
       }
     }
   }
+
+  dailyStats = {
+    dishesSold: 0,
+    baseEarnings: 0,
+    tipsEarned: 0,
+    totalEarnings: 0
+  };
 
   // save and navigate
   gameData.inventory = ingredients;
