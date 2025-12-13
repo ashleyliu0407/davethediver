@@ -19,9 +19,12 @@ else {
   }
 }
 
+//
+let isGameOver = false;
+let gameOverAlpha = 0;
+
 //mbackground music
 let bgMusic;
-
 let boat;
 let boatImg; 
 let character;
@@ -59,6 +62,15 @@ let nextPage = "";
 //instructions
 let showInstructions = true;
 let instructionBoxAlpha = 220;
+
+//coins 
+let coins = gameData.coins;
+let maintenanceCharged = JSON.parse(sessionStorage.getItem("maintenanceCharged")) || false;
+
+//fee pop up 
+let feePopupAlpha = 0;
+let showFeePopup = false;
+let feePopupTimer = 0;
 
 
 
@@ -133,6 +145,22 @@ function setup() {
     y: 0 
   };
 
+
+  //FEE PER DAY 
+  if(numDives === 0 && !maintenanceCharged){
+    gameData.coins -= 30; 
+    localStorage.setItem("gameData", JSON.stringify(gameData)); 
+    maintenanceCharged = true; 
+    sessionStorage.setItem("maintenanceCharged", JSON.stringify(maintenanceCharged));
+
+    //show the pop up 
+    showFeePopup = true;
+    feePopupAlpha = 255;
+    //start timer 
+    feePopupTimer = millis(); 
+  }
+
+
   // Create dive button
   diveButton = createButton('DIVE');
   diveButton.size(80, 40);
@@ -171,8 +199,9 @@ function setup() {
   //   window.location.href = "dive.html";
   // });
 
+  
   // create gear button
-  gearButton = createButton('SELECT GEAR');
+  gearButton = createButton('EQUIP & UPGRADE');
   // gearButton = createButton("DIVER'S GEAR");
   gearButton.size(140, 50);
   gearButton.style("font-size", "14px");
@@ -199,11 +228,15 @@ function setup() {
   restaurantButton.style("font-family", "Quantico, sans-serif");
   // restaurantButton.position(width/2, height/2);
   // /2+50 and /2 
-  restaurantButton.position(width/2-400, height/2);
+  restaurantButton.position(width/2-400, height/2+80);
+  
   // restaurantButton.mousePressed(startDive);
   restaurantButton.mousePressed(() => {
     // reset dive counter for new session
     sessionStorage.setItem("numDives", 0);
+    //reset maintenance charge for new day
+    sessionStorage.setItem("maintenanceCharged", false);
+    maintenanceCharged = false;
     numDives = 0;
     if (!gearMenu.isVisible) { 
       // prevent going to restaurant if gear menu is open
@@ -234,8 +267,6 @@ function setup() {
     window.location.href = "start.html";
   });
 
-
-
   
 }
 
@@ -259,6 +290,8 @@ function updateButtonVisibility() {
     restaurantButton.hide();
     gearButton.hide();
   } else {
+    //ADD ARROWS HERE
+    // drawTriangles(a1,b1,a2,b2,a3,b3)
     diveButton.show();
     restaurantButton.show();
     gearButton.show();
@@ -269,6 +302,19 @@ function draw() {
   if (!isUnderwater) {
     drawSurfaceScene();
     drawMoneyAndDay();
+
+    //Check if game is over (coins < 0)
+    if (!isGameOver && gameData.coins < 0) {
+      isGameOver = true;
+      gameOverAlpha = 0;
+
+      // disable all the buttons
+      diveButton.hide();
+      gearButton.hide();
+      restaurantButton.hide();
+      homeButton.hide();
+    }
+
 
     // draw gear menu if visible
     if (gearMenu.isVisible) {
@@ -330,13 +376,30 @@ function draw() {
     textStyle(BOLD);
     text(
       "Hey there Dave - ready to fish?\n\n" +
-      "Dive up to TWO times per day\n and your catches will automatically save after every \ndive.\n\n" +
+      "Dive up to TWO times per day\nand your catches will automatically save after every \ndive.\n\n" +
       "Upgrade and equip your tools to catch more fish\n" +
       "Visit the restaurant once you’re done diving!\n",
       width/2-350, height/2+20
     );
   }
+  //game over if money runs out 
+  drawGameOverScreen();
+  //draw the fee pop up 
+  drawFeePopup();
 
+}
+
+
+function drawTriangles(a1,b1,a2,b2,a3,b3){
+    fill(255); 
+    triangle(
+    // tip (center of button height)
+    width/2 + a1, height/2 + b1, 
+    // top 
+    width/2 + a2, height/2 + b2,   
+    // bottom
+    width/2 + a3, height/2 + b3   
+);
 }
 
 
@@ -519,6 +582,71 @@ function drawMoneyAndDay() {
   text('Day ' + gameData.day, 30, 140);
   
   pop();
+}
+
+//fee charge pop up 
+function drawFeePopup() {
+  if (!showFeePopup) return;
+
+  // Fade out after a sec 
+  if (millis() - feePopupTimer > 1500) {
+    //fade out 
+    feePopupAlpha -= 4; 
+    if (feePopupAlpha <= 0) {
+      showFeePopup = false;
+      feePopupAlpha = 0;
+    }
+  }
+
+  push();
+  textAlign(CENTER, CENTER);
+  textSize(32);
+  textFont("Quantico, sans-serif");
+  fill(255, 0, 0, feePopupAlpha); 
+  noStroke();
+  text("-$30 Daily Boat Upkeep", width / 2, 60); 
+  pop();
+}
+
+//GAME OVER SCREEN POP UP 
+function drawGameOverScreen() {
+  if (!isGameOver) return;
+
+  // Fade into the GO screen 
+  if (gameOverAlpha < 255) {
+    gameOverAlpha += 4;
+  }
+
+  push();
+  // dark overlay
+  fill(0, gameOverAlpha * 0.8); 
+  rect(0, 0, width, height);
+
+  textAlign(CENTER, CENTER);
+  textFont("Quantico, sans-serif");
+  
+  // Main txt
+  fill(255, 0, 0, gameOverAlpha);
+  textSize(60);
+  text("GAME OVER", width / 2, height / 2 - 40);
+
+  // Subtxt
+  fill(255, gameOverAlpha);
+  textSize(28);
+  text("You ran out of money.", width / 2, height / 2 + 20);
+  textSize(22);
+  text("Returning to Home Screen...", width / 2, height / 2 + 70);
+
+  pop();
+
+  // redirect after a bit of a delay to the home start screen again 
+  if (gameOverAlpha >= 255) {
+    setTimeout(() => {
+      sessionStorage.setItem("numDives", 0);
+      sessionStorage.setItem("maintenanceCharged", false);
+      window.location.href = "start.html";
+    }, 1600);
+  }
 }
 
 
