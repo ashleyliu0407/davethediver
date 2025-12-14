@@ -516,9 +516,11 @@ function createCustomer() {
   };
 
   let decorScore = (typeof getDecorationScore === 'function') ? getDecorationScore() : 0;
-  let complimentChance = constrain(decorScore * 0.05, 0, 0.3);
-  if (random() < complimentChance) {
-    newCustomer.envCompliment = true;
+  if (decorScore > 0) { // NEW: only compliment if decorScore > 0
+    let complimentChance = constrain(decorScore * 0.08, 0, 0.5);
+    if (random() < complimentChance) {
+      newCustomer.envCompliment = true;
+    }
   }
   customers.push(newCustomer);
   console.log('New customer (' + customerType + ') ordering: ' + randomDish);

@@ -78,7 +78,7 @@ let gameState = 'preparation'; // 'preparation' or 'serving'
 
 // money and day system
 let totalMoney = gameData.coins || 0;
-// totalMoney = 500;
+totalMoney = 50000;
 let currentDay = gameData.day || 1;
 let currentRating = gameData.rating || 5.0; 
 let coinIcon;
@@ -1850,7 +1850,23 @@ function getRatingBonusFromRating(rating) {
 
 function getDecorationScore() {
   if (typeof decorations === 'undefined' || !decorations) return 0;
-  return decorations.filter(d => d && d.placed !== false).length;
+  if (!gameData.interiorUnlocked) return 0; // no score if interior locked
+  let score = 0;
+  for (let deco of decorations) {
+    if (!deco.purchased) continue;
+    
+    if (deco.isFixed) {
+      if (deco.active) {
+        score++;
+      }
+    } else {
+      if (deco.instances && deco.instances.length > 0) {
+        score++;
+      }
+    }
+  }
+  console.log('Decoration score: ' + score); // Debug log to verify
+  return score;
 }
 
 function endDay() {
