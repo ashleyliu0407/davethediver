@@ -78,7 +78,7 @@ let gameState = 'preparation'; // 'preparation' or 'serving'
 
 // money and day system
 let totalMoney = gameData.coins || 0;
-totalMoney = 50000;
+// totalMoney = 50000;
 let currentDay = gameData.day || 1;
 let currentRating = gameData.rating || 5.0; 
 let coinIcon;
@@ -233,13 +233,11 @@ function setup() {
 function draw() {
   imageMode(CORNER);
   image(backgroundImage, 0, 0, 1400, 350);    // scene bg
-  drawMoneyAndDay();      // money counter and day number (top)
   if (!gameData.interiorUnlocked && totalMoney >= 400) {
     gameData.interiorUnlocked = true;
     localStorage.setItem("gameData", JSON.stringify(gameData));
     console.log('Interior permanently unlocked!');
   }
-
   drawTable();            // counter surface + shadow
   drawTray();             // tray sprite (center)
   drawTablePositions();   // ingredients/dishes on table slots
@@ -249,6 +247,7 @@ function draw() {
   drawIcons();            // bottom icon bar
   drawDecorations();      // decorations
   drawCustomers();        // customers walking and ordering
+  drawMoneyAndDay();      // money counter and day number (top)
   
   // only update customers when in serving mode
   if (gameState === 'serving') {

@@ -46,7 +46,7 @@ function applyCustomerTipModifier(customer) {
 
   if (multiplier !== 1.0) {
     // adjust tip and total; keep base the same
-    info.tip = Math.round(info.tip * multiplier * 100) / 100;
+    info.tip = Math.round(info.tip * multiplier);
     info.total = info.base + info.tip;
 
     // refresh display text to show updated tip
@@ -602,7 +602,10 @@ function calculateEarnings(orderedDish, servedDish, servedIngredients) {
     }
   }
 
+  base = Math.round(base);
+  tip = Math.round(tip);
   const total = base + tip;
+  
 
   displayText = tip > 0
     ? `$${base} + $${tip} tip\n(${tipReason})`
