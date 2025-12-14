@@ -61,7 +61,7 @@ class Player {
             "Knife": true,
             "Harpoon": true,
             "SpearGun": false,
-            "Netgun": true
+            "Netgun": false
         }; // tracks owned weapons
 
         // read equipped firearm from storage

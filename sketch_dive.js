@@ -112,7 +112,8 @@ const weaponConfig = {
     type: "DAMAGE",
     damage: 5,
     projectileSpeed: 10,
-    range: 500
+    range: 500,
+    maxAmmo: 10 // use for ammo box
   },
   "Netgun": {
     type: "CATCH",
@@ -120,7 +121,8 @@ const weaponConfig = {
     projectileSpeed: 8,
     range: 350,
     effectRadius: 120, // radius of net
-    entangleDuration: 1.5 // stun duration in seconds
+    entangleDuration: 1.5, // stun duration in seconds
+    maxAmmo: 5  // use for ammo box
   }
 }
 
@@ -195,6 +197,9 @@ function preload() {
 
   backpackIconImg = loadImage("images/bag/BagUI.png");
   boxImages.oxygen = loadImage("images/oxyg.png");
+  boxImages.ammo = loadImage("images/ammo_box.png");
+  boxImages.weapon_open = loadImage("images/weapon_box_open.png");
+  boxImages.weapon_close = loadImage("images/weapon_box_close.png");
 
   // add fish image loading logic(need to change)
   for (let species of allSpecies) {
@@ -230,6 +235,8 @@ function preload() {
   weaponImages.NetProjectile = loadImage("images/weapons/NetProjectile.png");
   weaponImages.NetDeployed = loadImage("images/weapons/NetDeployed.png");
   weaponImages.EntangledIcon = loadImage("images/weapons/EntangledIcon.png");
+  weaponImages.SpearGun_handbook = loadImage("images/weapons/SpearGun_handbook.png");
+  weaponImages.Netgun_handbook = loadImage("images/weapons/Netgun_handbook.png");
 
   //popup images
   menuPopupImg = loadImage("images/fish/menu.png");
@@ -289,7 +296,7 @@ function setup() {
 
   // Use Inventory class from external file
   inventory = new Inventory(currentBagCapacity, backpackIconImg);
-  spawnOxygenBoxes();
+  spawnBoxes();
 
   // Create return button
   returnButton = createButton('Return & Unload Fish onto the Boat');
@@ -414,11 +421,7 @@ function draw() {
   // move back
   translate(-player.position.x, -player.position.y);
 
-  drawActiveFish();
-
-  drawProjectiles(); // new function to draw projectiles
-
-  // Draw oxygen boxes
+  // Draw boxes
   for (let i = activeBoxes.length - 1; i >= 0; i--) {
     let box = activeBoxes[i];
     box.display();
@@ -428,13 +431,25 @@ function draw() {
     }
   }
 
+  drawActiveFish();
+
+  drawProjectiles(); // new function to draw projectiles
+
+
   function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
     
   }
 
-
   player.display();
+
+  // draw UI overlays for boxes
+  for (let box of activeBoxes) {
+    if (box instanceof InteractableBox) {
+      box.displayUiOverlay();
+    }
+  }
+
   pop();
   drawDarknessOverlay();
 
@@ -686,6 +701,8 @@ function createOceanGrid() {
         depth: depthLevel,
         fish: fishType,
         hasOxygenTank: random(1) < 0.005, // can change: 0.5% chance to have oxygen tank
+        hasAmmoBox: random(1) < 0.003, // can change: 0.3% chance to have ammo box
+        hasWeaponBox: random(1) < 0.002, // can change: 0.2% chance to have weapon box
         isActive: false // whether the fish display
       });
     }
@@ -1124,6 +1141,12 @@ function keyPressed(event) {
     }
   }
 
+  for (let box of activeBoxes) {
+    if (box instanceof InteractableBox) {
+      box.handleKeyPress(keyCode, player);
+    }
+  }
+
 }
 
 
@@ -1174,22 +1197,29 @@ function drawOxygenBar() {
   
 }
 
-//spawn oxygen boxes:
-function spawnOxygenBoxes() {
+//spawn oxygen/ammo/weapon boxes:
+function spawnBoxes() {
   activeBoxes = [];
   for (let r = 0; r < GRID_ROWS; r++) {
     for (let c = 0; c < GRID_COLS; c++) {
       // ~3% chance per grid cell
       let cell = grid[r][c]; // get the cell from the grid
+      let x = cell.x + CELL_WIDTH /2;
+      let y = cell.y + CELL_HEIGHT / 2;
 
       // read the data we already saved in createOceanGrid
       if (cell.hasOxygenTank) {
-        let x = cell.x + CELL_WIDTH /2;
-        let y = cell.y + CELL_HEIGHT / 2;
-        let oxygenAmount = player.maxOxygen / 2; // can change
-
+        let oxygenAmount = player.maxOxygen; // can change
         let oBox = new OxygenBox(x, y, oxygenAmount, boxImages.oxygen);
         activeBoxes.push(oBox);
+      }
+      else if (cell.hasAmmoBox) {
+        let aBox = new AmmoBox(x, y, boxImages.ammo);
+        activeBoxes.push(aBox);
+      }
+      else if (cell.hasWeaponBox) {
+        let wBox = new WeaponBox(x, y, boxImages.weapon_close, boxImages.weapon_open);
+        activeBoxes.push(wBox);
       }
     }
   }
