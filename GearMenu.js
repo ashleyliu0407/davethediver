@@ -160,7 +160,7 @@ class GearMenu {
         textAlign(RIGHT, TOP);
         textSize(18);
         fill(255, 215, 0); // gold color
-        text("$ " + this.gameData.coins, cx + this.menuWidth/2 - 20, cy - this.menuHeight/2 + 25);
+        text("$ " + Math.floor(this.gameData.coins), cx + this.menuWidth/2 - 20, cy - this.menuHeight/2 + 25);
         pop();
     }
 
@@ -577,6 +577,8 @@ class GearMenu {
             // save back to localStorage
             localStorage.setItem('gameData', JSON.stringify(this.gameData));
             console.log(`Bounght ${weaponName}`);
+
+            refreshGameData(); // refresh game data in case of desync
         }
         else {
             console.log(`Not enough coins to buy ${weaponName}`);
@@ -611,6 +613,8 @@ class GearMenu {
                 // save back to localStorage
                 localStorage.setItem('gameData', JSON.stringify(this.gameData));
                 console.log(`Upgraded ${key} to level ${this.gameData.upgrades[key]}`);
+
+                refreshGameData(); // refresh game data in case of desync
             }
             else {
                 console.log(`Not enough coins to upgrade ${key}`);

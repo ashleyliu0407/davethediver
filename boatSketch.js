@@ -249,8 +249,11 @@ function startActualDive() {
 // helpers to toggle gear menu
 function toggleGearMenu() {
   gearMenu.toggle();
-  gameData = JSON.parse(localStorage.getItem('gameData')); // refresh game data
   updateButtonVisibility();
+}
+
+function refreshGameData() {
+  gameData = JSON.parse(localStorage.getItem('gameData'));
 }
 
 // Update button visibility based on gear menu state
@@ -510,7 +513,7 @@ function drawMoneyAndDay() {
   strokeWeight(3);
   textAlign(LEFT, CENTER);
   textSize(28);
-  text('$' + gameData.coins, 70, 100);
+  text('$' + Math.floor(gameData.coins), 70, 100);
   
   // Day indicator
   fill(255);
