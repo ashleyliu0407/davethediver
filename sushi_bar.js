@@ -1792,7 +1792,7 @@ function drawDailyRecapPopup() {
   
   // coin icon
   imageMode(CENTER);
-  image(coinIcon, popupX + popupWidth - 110, itemY, 30, 30);
+  image(coinIcon, popupX + popupWidth - 140, itemY, 30, 30);
   
   // total amount
   fill(255, 215, 0);
