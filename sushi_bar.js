@@ -78,7 +78,7 @@ let gameState = 'preparation'; // 'preparation' or 'serving'
 
 // money and day system
 let totalMoney = gameData.coins || 0;
-// totalMoney = 500;
+// totalMoney = 50000;
 let currentDay = gameData.day || 1;
 let currentRating = gameData.rating || 5.0; 
 let coinIcon;
@@ -233,13 +233,11 @@ function setup() {
 function draw() {
   imageMode(CORNER);
   image(backgroundImage, 0, 0, 1400, 350);    // scene bg
-  drawMoneyAndDay();      // money counter and day number (top)
   if (!gameData.interiorUnlocked && totalMoney >= 400) {
     gameData.interiorUnlocked = true;
     localStorage.setItem("gameData", JSON.stringify(gameData));
     console.log('Interior permanently unlocked!');
   }
-
   drawTable();            // counter surface + shadow
   drawTray();             // tray sprite (center)
   drawTablePositions();   // ingredients/dishes on table slots
@@ -249,6 +247,7 @@ function draw() {
   drawIcons();            // bottom icon bar
   drawDecorations();      // decorations
   drawCustomers();        // customers walking and ordering
+  drawMoneyAndDay();      // money counter and day number (top)
   
   // only update customers when in serving mode
   if (gameState === 'serving') {
@@ -1792,7 +1791,7 @@ function drawDailyRecapPopup() {
   
   // coin icon
   imageMode(CENTER);
-  image(coinIcon, popupX + popupWidth - 110, itemY, 30, 30);
+  image(coinIcon, popupX + popupWidth - 140, itemY, 30, 30);
   
   // total amount
   fill(255, 215, 0);
@@ -1850,7 +1849,23 @@ function getRatingBonusFromRating(rating) {
 
 function getDecorationScore() {
   if (typeof decorations === 'undefined' || !decorations) return 0;
-  return decorations.filter(d => d && d.placed !== false).length;
+  if (!gameData.interiorUnlocked) return 0; // no score if interior locked
+  let score = 0;
+  for (let deco of decorations) {
+    if (!deco.purchased) continue;
+    
+    if (deco.isFixed) {
+      if (deco.active) {
+        score++;
+      }
+    } else {
+      if (deco.instances && deco.instances.length > 0) {
+        score++;
+      }
+    }
+  }
+  console.log('Decoration score: ' + score); // Debug log to verify
+  return score;
 }
 
 function endDay() {

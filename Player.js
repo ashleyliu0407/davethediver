@@ -61,7 +61,7 @@ class Player {
             "Knife": true,
             "Harpoon": true,
             "SpearGun": false,
-            "Netgun": true
+            "Netgun": false
         }; // tracks owned weapons
 
         // read equipped firearm from storage
@@ -423,6 +423,9 @@ class Player {
             }
             else {
                 // no ammo, maybe play a sound or show a message
+                if (dryFireSound) {
+                    dryFireSound.play(0,1,0.5);
+                }
                 console.log("Out of SpearGun ammo!");
             }
         }
@@ -443,7 +446,9 @@ class Player {
             }
             else {
                 // no ammo
-                // add a sound
+                if (dryFireSound) {
+                    dryFireSound.play(0,1,0.5);
+                }
                 console.log("Out of Netgun ammo!");
             }
         }

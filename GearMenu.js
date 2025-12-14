@@ -129,10 +129,13 @@ class GearMenu {
         textFont("Quantico");
         text("DIVER'S SHOP", cx, cy - this.menuHeight/2 + 20);
 
-        // 4. draw tabs
+        // 4. draw coins display
+        this.drawCoinsDisplay(cx, cy);
+
+        // 5. draw tabs
         this.drawTabs(cx, cy);
 
-        // 5. draw current tab content
+        // 6. draw current tab content
         if (this.currentTab === "FIREARMS") {
             this.drawFirearmsContent(cx, cy);
         }
@@ -140,7 +143,7 @@ class GearMenu {
             this.drawUpgradeContent(cx, cy);
         }
 
-        // 6. draw instructions
+        // 7. draw instructions
         textSize(14);
         fill(200);
         textAlign(CENTER, BOTTOM);
@@ -157,7 +160,7 @@ class GearMenu {
         textAlign(RIGHT, TOP);
         textSize(18);
         fill(255, 215, 0); // gold color
-        text("$ " + this.gameData.coins, cx + this.menuWidth/2 - 20, cy - this.menuHeight/2 + 25);
+        text("$ " + Math.floor(this.gameData.coins), cx + this.menuWidth/2 - 20, cy - this.menuHeight/2 + 25);
         pop();
     }
 
@@ -563,6 +566,10 @@ class GearMenu {
 
         let price = this.weaponConfig[weaponName].price;
         if (this.gameData.coins >= price) {
+            // play buy sound
+            if (buySound) {
+                buySound.play();
+            }
             // deduct coins
             this.gameData.coins -= price;
             // add weapon to inventory
@@ -574,8 +581,13 @@ class GearMenu {
             // save back to localStorage
             localStorage.setItem('gameData', JSON.stringify(this.gameData));
             console.log(`Bounght ${weaponName}`);
+
+            refreshGameData(); // refresh game data in case of desync
         }
         else {
+            if (noMoneySound) {
+                noMoneySound.play();
+            }
             console.log(`Not enough coins to buy ${weaponName}`);
         }
 
@@ -601,6 +613,10 @@ class GearMenu {
 
             // check if enough coins
             if (this.gameData.coins >= cost) {
+                // play upgrade sound
+                if (upgradeSound) {
+                    upgradeSound.play();
+                }
                 // deduct coins
                 this.gameData.coins -= cost;
                 // upgrade level
@@ -608,8 +624,13 @@ class GearMenu {
                 // save back to localStorage
                 localStorage.setItem('gameData', JSON.stringify(this.gameData));
                 console.log(`Upgraded ${key} to level ${this.gameData.upgrades[key]}`);
+
+                refreshGameData(); // refresh game data in case of desync
             }
             else {
+                if (noMoneySound) {
+                    noMoneySound.play();
+                }
                 console.log(`Not enough coins to upgrade ${key}`);
             }
         }

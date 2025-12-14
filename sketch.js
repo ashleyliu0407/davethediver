@@ -1,23 +1,30 @@
 let backgroundImg;
 let myGif; 
 
-
+// sound
+let beginSound;
 
 
 //button 
 let playButton;
+let continueButton;
 let gameStarted = false;
 
 function preload(){
     backgroundImg = loadImage("images/DTD.png");
     myGif = loadImage("images/plants.gif");
-
+    beginSound = loadSound('sounds/begin.mp3');
 }
 
 
 function setup(){
     let cnv = createCanvas(windowWidth, windowHeight);
     cnv.parent(document.body);
+
+    //start the audio right away
+    beginSound.setVolume(0.2);
+    beginSound.loop();
+
     //Button
     playButton = createButton("New Game");
     playButton.position(width / 2 - 180, height / 2 + 200); // center the button
@@ -30,6 +37,7 @@ function setup(){
     playButton.style("font-family", "Quantico, sans-serif");
     // When clicked, go to another page
     playButton.mousePressed(() => {
+        beginSound.stop();
         localStorage.removeItem("gameData");
         localStorage.removeItem("caughtFishTypes");
         localStorage.removeItem("shownNotifications");
@@ -52,6 +60,7 @@ function setup(){
     continueButton.style("font-family", "Quantico, sans-serif");
     // When clicked, go to another page
     continueButton.mousePressed(() => {
+        beginSound.stop();
         continueButton.style("transform", "scale(0.95)");
         continueButton.style("background-color", "#003d80");
         window.location.href = "day.html";  // change this to your desired page

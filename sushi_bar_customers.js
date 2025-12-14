@@ -46,7 +46,7 @@ function applyCustomerTipModifier(customer) {
 
   if (multiplier !== 1.0) {
     // adjust tip and total; keep base the same
-    info.tip = Math.round(info.tip * multiplier * 100) / 100;
+    info.tip = Math.round(info.tip * multiplier);
     info.total = info.base + info.tip;
 
     // refresh display text to show updated tip
@@ -516,9 +516,11 @@ function createCustomer() {
   };
 
   let decorScore = (typeof getDecorationScore === 'function') ? getDecorationScore() : 0;
-  let complimentChance = constrain(decorScore * 0.05, 0, 0.3);
-  if (random() < complimentChance) {
-    newCustomer.envCompliment = true;
+  if (decorScore > 0) { // NEW: only compliment if decorScore > 0
+    let complimentChance = constrain(decorScore * 0.08, 0, 0.5);
+    if (random() < complimentChance) {
+      newCustomer.envCompliment = true;
+    }
   }
   customers.push(newCustomer);
   console.log('New customer (' + customerType + ') ordering: ' + randomDish);
@@ -600,7 +602,10 @@ function calculateEarnings(orderedDish, servedDish, servedIngredients) {
     }
   }
 
+  base = Math.round(base);
+  tip = Math.round(tip);
   const total = base + tip;
+  
 
   displayText = tip > 0
     ? `$${base} + $${tip} tip\n(${tipReason})`

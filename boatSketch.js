@@ -4,8 +4,8 @@ if (!gameData) {
     day: 1,
     coins: 100,
     inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}],
-    weapons: {'Netgun': 1}, // for test
-    discoveredWeapons: ['Netgun'],
+    weapons: {},
+    discoveredWeapons: [],
     equippedFirearm: null,
     upgrades: {AirTank: 1, CargoBox: 1}
   };
@@ -25,6 +25,14 @@ let gameOverAlpha = 0;
 
 //mbackground music
 let bgMusic;
+<<<<<<< HEAD
+=======
+let upgradeSound; // sound when purchasing upgrade
+let buySound; // sound when purchasing weapon
+let equipSound; // sound when equipping weapon
+let noMoneySound; // sound when not enough money
+
+>>>>>>> 40ea0d571d6d441079d9ecd83662c7a0f3699402
 let boat;
 let boatImg; 
 let character;
@@ -88,6 +96,15 @@ function preload(){
 
     //loading abckground sound
     bgMusic = loadSound('sounds/startandboat/background.wav');
+
+    // upgrade sound
+    upgradeSound = loadSound('sounds/startandboat/upgrade.mp3');
+    // buy weapon sound
+    buySound = loadSound('sounds/restaurant/coin.mp3');
+    // equip weapon sound
+    equipSound = loadSound('sounds/startandboat/equip.mp3');
+    // no money sound
+    noMoneySound = loadSound('sounds/startandboat/no_money.mp3');
 
     // bgImg = loadImage("images/sky.png");
     bgImg = loadImage("images/sky1.png");
@@ -281,6 +298,10 @@ function startActualDive() {
 function toggleGearMenu() {
   gearMenu.toggle();
   updateButtonVisibility();
+}
+
+function refreshGameData() {
+  gameData = JSON.parse(localStorage.getItem('gameData'));
 }
 
 // Update button visibility based on gear menu state
@@ -572,7 +593,7 @@ function drawMoneyAndDay() {
   strokeWeight(3);
   textAlign(LEFT, CENTER);
   textSize(28);
-  text('$' + gameData.coins, 70, 100);
+  text('$' + Math.floor(gameData.coins), 70, 100);
   
   // Day indicator
   fill(255);
