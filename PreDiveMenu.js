@@ -323,6 +323,12 @@ class PreDiveMenu {
             noStroke();
             text("EQUIP", btnX, y);
         }
+
+        // draw owned count
+        let ownedCount = (this.gameData.weapons && this.gameData.weapons[key]) ? this.gameData.weapons[key] : 0;
+        fill(200);
+        textSize(10);
+        text(`Owned: ${ownedCount}`, btnX, y - rowH/2 + 70);
     }
 
     drawGoButton(cx, y) {
@@ -422,6 +428,20 @@ class PreDiveMenu {
     }
 
     startDive() {
+        let firearm = this.gameData.equippedFirearm;
+
+        if (firearm) {
+            if (!this.gameData.weapons) this.gameData.weapons = {};
+
+            if (this.gameData.weapons[firearm] > 0) {
+                // take this weapon, so decrease count by 1
+                this.gameData.weapons[firearm] -= 1;
+                // for debug
+                console.log(`Taking 1 ${firearm} for the dive. Remaining: ${this.gameData.weapons[firearm]}`);
+
+                localStorage.setItem('gameData', JSON.stringify(this.gameData));
+            }
+        }
         this.toggle();
         // Trigger dive start in main game
         startActualDive();

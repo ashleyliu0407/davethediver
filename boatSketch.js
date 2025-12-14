@@ -4,8 +4,8 @@ if (!gameData) {
     day: 1,
     coins: 100,
     inventory: [{name: 'Rice', image: 'images/restaurant/ingredients/rice.png'}],
-    weapons: {'Netgun': 1}, // for test
-    discoveredWeapons: ['Netgun'],
+    weapons: {},
+    discoveredWeapons: [],
     equippedFirearm: null,
     upgrades: {AirTank: 1, CargoBox: 1}
   };
@@ -249,6 +249,7 @@ function startActualDive() {
 // helpers to toggle gear menu
 function toggleGearMenu() {
   gearMenu.toggle();
+  gameData = JSON.parse(localStorage.getItem('gameData')); // refresh game data
   updateButtonVisibility();
 }
 

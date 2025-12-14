@@ -129,10 +129,13 @@ class GearMenu {
         textFont("Quantico");
         text("DIVER'S SHOP", cx, cy - this.menuHeight/2 + 20);
 
-        // 4. draw tabs
+        // 4. draw coins display
+        this.drawCoinsDisplay(cx, cy);
+
+        // 5. draw tabs
         this.drawTabs(cx, cy);
 
-        // 5. draw current tab content
+        // 6. draw current tab content
         if (this.currentTab === "FIREARMS") {
             this.drawFirearmsContent(cx, cy);
         }
@@ -140,7 +143,7 @@ class GearMenu {
             this.drawUpgradeContent(cx, cy);
         }
 
-        // 6. draw instructions
+        // 7. draw instructions
         textSize(14);
         fill(200);
         textAlign(CENTER, BOTTOM);

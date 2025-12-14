@@ -355,10 +355,7 @@ function draw() {
       if (savedData && savedData.equippedFirearm) {
         let weaponName = savedData.equippedFirearm;
 
-        if (savedData.weapons && savedData.weapons[weaponName] > 0) {
-          savedData.weapons[weaponName] -= 1;
-          console.log(`Lost 1 ${weaponName}. Remaining: ${savedData.weapons[weaponName]}`);
-        }
+        console.log(`Lost 1 ${weaponName}. Remaining: ${savedData.weapons[weaponName]}`);
 
         savedData.equippedFirearm = null;
 
@@ -1445,7 +1442,15 @@ function returnToBoat() {
 
   // put firearm back to inventory
   if (gameData.equippedFirearm) {
-    console.log(`Returning firearm ${gameData.equippedFirearm} to inventory.`);
+    let firearm = gameData.equippedFirearm;
+
+    // prevent we have the data in localStorage
+    if (!gameData.weapons) gameData.weapons = {};
+    if (!gameData.weapons[firearm]) gameData.weapons[firearm] = 0;
+
+    gameData.weapons[firearm] += 1; // put back to inventory
+
+    console.log(`Returning firearm ${gameData.equippedFirearm}. Total now: ${gameData.weapons[firearm]}`); // for debug
     gameData.equippedFirearm = null;
   }
 

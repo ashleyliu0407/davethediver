@@ -122,5 +122,14 @@ class WeaponBox extends InteractableBox {
 
 
         // can add sound effect here
+
+        let gameData = JSON.parse(localStorage.getItem('gameData'));
+        gameData.equippedFirearm = weaponOnGround; // update equipped firearm
+
+        // record discovered firearms
+        if (!gameData.discoveredWeapons) gameData.discoveredWeapons = []; // initialize if not exist
+        if (!gameData.discoveredWeapons.includes(weaponOnGround)) gameData.discoveredWeapons.push(weaponOnGround);
+
+        localStorage.setItem('gameData', JSON.stringify(gameData));
     }
 }
