@@ -420,6 +420,9 @@ class PreDiveMenu {
             this.gameData.equippedFirearm = null;
         } else {
             // equip
+            if (equipSound) {
+                equipSound.play(0,1,2);
+            }
             this.gameData.equippedFirearm = weaponName;
         }
 

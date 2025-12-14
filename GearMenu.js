@@ -566,6 +566,10 @@ class GearMenu {
 
         let price = this.weaponConfig[weaponName].price;
         if (this.gameData.coins >= price) {
+            // play buy sound
+            if (buySound) {
+                buySound.play();
+            }
             // deduct coins
             this.gameData.coins -= price;
             // add weapon to inventory
@@ -581,6 +585,9 @@ class GearMenu {
             refreshGameData(); // refresh game data in case of desync
         }
         else {
+            if (noMoneySound) {
+                noMoneySound.play();
+            }
             console.log(`Not enough coins to buy ${weaponName}`);
         }
 
@@ -606,6 +613,10 @@ class GearMenu {
 
             // check if enough coins
             if (this.gameData.coins >= cost) {
+                // play upgrade sound
+                if (upgradeSound) {
+                    upgradeSound.play();
+                }
                 // deduct coins
                 this.gameData.coins -= cost;
                 // upgrade level
@@ -617,6 +628,9 @@ class GearMenu {
                 refreshGameData(); // refresh game data in case of desync
             }
             else {
+                if (noMoneySound) {
+                    noMoneySound.play();
+                }
                 console.log(`Not enough coins to upgrade ${key}`);
             }
         }

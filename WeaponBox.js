@@ -84,6 +84,9 @@ class WeaponBox extends InteractableBox {
         if (!this.isOpen) {
             if (keyCode === 32) { // SPACE
                 // can add some sound effect here
+                if (openBoxSound) {
+                    openBoxSound.play();
+                }
                 this.isOpen = true;
             }
         }
@@ -122,6 +125,9 @@ class WeaponBox extends InteractableBox {
 
 
         // can add sound effect here
+        if (equipSound) {
+            equipSound.play(0,1,2);
+        }
 
         let gameData = JSON.parse(localStorage.getItem('gameData'));
         gameData.equippedFirearm = weaponOnGround; // update equipped firearm

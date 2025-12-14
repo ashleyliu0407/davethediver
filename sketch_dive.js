@@ -93,6 +93,10 @@ let drownSound;
 let fireSound;
 let knifeSound;
 let retrieveSound;
+let openBoxSound;
+let dryFireSound;
+let equipSound;
+let reloadSound;
 
 const weaponConfig = {
   "Knife": {
@@ -188,6 +192,10 @@ function preload() {
   fireSound = loadSound('sounds/diving/fire.mp3');
   knifeSound = loadSound('sounds/diving/knife.mp3');
   retrieveSound = loadSound('sounds/diving/retrieve_harpoon.mp3');
+  openBoxSound = loadSound('sounds/diving/open_box.mp3');
+  dryFireSound = loadSound('sounds/diving/dry_fire.mp3');
+  equipSound = loadSound('sounds/startandboat/equip.mp3');
+  reloadSound = loadSound('sounds/diving/reload.mp3');
 
   //rocks
   rockBG = loadImage("images/rocks/rocks.png");

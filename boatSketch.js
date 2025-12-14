@@ -21,6 +21,10 @@ else {
 
 //mbackground music
 let bgMusic;
+let upgradeSound; // sound when purchasing upgrade
+let buySound; // sound when purchasing weapon
+let equipSound; // sound when equipping weapon
+let noMoneySound; // sound when not enough money
 
 let boat;
 let boatImg; 
@@ -76,6 +80,15 @@ function preload(){
 
     //loading abckground sound
     bgMusic = loadSound('sounds/startandboat/background.wav');
+
+    // upgrade sound
+    upgradeSound = loadSound('sounds/startandboat/upgrade.mp3');
+    // buy weapon sound
+    buySound = loadSound('sounds/restaurant/coin.mp3');
+    // equip weapon sound
+    equipSound = loadSound('sounds/startandboat/equip.mp3');
+    // no money sound
+    noMoneySound = loadSound('sounds/startandboat/no_money.mp3');
 
     // bgImg = loadImage("images/sky.png");
     bgImg = loadImage("images/sky1.png");

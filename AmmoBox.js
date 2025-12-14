@@ -43,6 +43,9 @@ class AmmoBox extends InteractableBox {
             player.ammo[currentWeapon] = weaponConfig[currentWeapon].maxAmmo;
 
             // can add sound effect here
+            if (reloadSound) {
+                reloadSound.play(0,1,0.5);
+            }
 
             this.isCollected = true; // delete box after collected
         }
