@@ -313,7 +313,7 @@ function setup() {
 
 function draw() {
 
-  windowResized();
+ 
 
   // if oxygen is 0
   if (isPlayerDrowning) {
@@ -428,10 +428,7 @@ function draw() {
     }
   }
 
-  function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
-    
-  }
+ 
 
 
   player.display();
@@ -529,6 +526,11 @@ function draw() {
 
 }
 
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+    
+  }
+
 
 function generateRockPlacements() {
   rockPlacements = [];
@@ -549,7 +551,12 @@ function drawRockParallax() {
   let rockHeight; 
 
 
-  let cameraOffsetY = player.position.y - height / 2;
+  // let cameraOffsetY = player.position.y - height / 2;
+  let cameraOffsetY = constrain(
+    player.position.y - height / 2,
+    -20,
+    maxDepth - height + 20
+  );
   // parallax factor for rocks
   let parallaxFactor = 0.9; 
 
