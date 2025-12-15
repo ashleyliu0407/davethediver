@@ -26,6 +26,16 @@ let rockBGs = [];
 const ROCK_SPACING =  800; 
 let rockPlacements = [];
 
+let farRockBGs = [];
+let farRockPlacements = [];
+const FAR_ROCK_SPACING = 900;
+
+let vegImages = [];
+let vegPlacements = [];
+
+const VEG_SPACING = 100;    
+const VEG_BASE_DEPTH = 0.75; 
+
 
 // Grid and ocean settings
 const GRID_ROWS = 30;
@@ -203,6 +213,18 @@ function preload() {
   rockBGs.push(loadImage("images/rocks/rocks2.png"));
   rockBGs.push(loadImage("images/rocks/rocks3.png"));
 
+  farRockBGs.push(loadImage("images/rocks/far-rocks.png"));
+  farRockBGs.push(loadImage("images/rocks/far-rocks2.png"));
+  farRockBGs.push(loadImage("images/rocks/far-rocks3.png"));
+
+  //vegetation
+  vegImages.push(loadImage("images/rocks/plant1.png"));
+  vegImages.push(loadImage("images/rocks/plant2.png"));
+  vegImages.push(loadImage("images/rocks/plant3.png"));
+
+
+  
+
   backpackIconImg = loadImage("images/bag/BagUI.png");
   boxImages.oxygen = loadImage("images/oxyg.png");
   boxImages.ammo = loadImage("images/ammo_box.png");
@@ -248,7 +270,7 @@ function preload() {
 
   //popup images
   menuPopupImg = loadImage("images/fish/menu.png");
-  showInstructionsImg = loadImage("images/fish/instructions.png");
+  showInstructionsImg = loadImage("images/fish/instructions2.png");
   menuItemsImg= loadImage("images/fish/menu_items.png");
 
   
@@ -320,6 +342,9 @@ function setup() {
   returnButton.hide();
 
   generateRockPlacements();
+  generateFarRockPlacements();
+  generateVegPlacements();
+  
 
 
 
@@ -339,7 +364,9 @@ function draw() {
   background(0);
   drawOceanGradient();
   // drawParallaxBackground();
+  drawFarRockParallax();  
   drawRockParallax();
+  drawVegetationParallax();
 
 
   player.encumbranceFactor = inventory.outOfCapacity(); // update encumbrance factor
@@ -436,19 +463,11 @@ function draw() {
     }
   }
 
-<<<<<<< HEAD
  
-=======
   drawActiveFish();
 
   drawProjectiles(); // new function to draw projectiles
 
-
-  function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
-    
-  }
->>>>>>> 40ea0d571d6d441079d9ecd83662c7a0f3699402
 
   player.display();
 
@@ -501,28 +520,6 @@ function draw() {
   drawWeaponUI();
   pop();
 
-  //instructions
-  // if (showInstructions) {
-  //   // Text content
-  //   noStroke();
-  //   push();
-  //   fill(255);
-  //   pop();
-  //   textAlign(CENTER, CENTER);
-  //   textSize(20);
-  //   text(
-  //     "Hey Dave, Ready To Dive?\n\n" +
-  //     "• Use WASD to swim\n\n" +
-  //     "• Press TAB to change weapons\n\n" +
-  //     "• Use RIGHT CLICK (two fingers on mousepad) to AIM \n\n" +
-  //     "• Press 1 to SHOOT \n\n" +
-  //     "• Hold SHIFT to swim FASTER \n\n" +
-  //     "• Collected fish show up in INVENTORY\n\n" +
-  //     "• Keep an eye out for your OXYGEN or you'll loose your fish...\n\n" +
-  //     "Click anywhere to start.",
-  //     width / 2, height / 2
-  //   );
-  // }
 
   //MENU
   fill(255);
@@ -605,6 +602,115 @@ function drawRockParallax() {
 
   pop();
 }
+
+//FAR ROCKS 
+function generateFarRockPlacements() {
+  farRockPlacements = [];
+
+  for (
+    let x = WORLD_START_X;
+    x < WORLD_START_X + WORLD_WIDTH;
+    x += FAR_ROCK_SPACING
+  ) {
+    let img = random(farRockBGs);
+    farRockPlacements.push({ x, img });
+  }
+}
+
+function drawFarRockParallax() {
+  push();
+  imageMode(CENTER);
+
+  const FAR_ROCK_HEIGHT = 1800;
+
+  let cameraOffsetY = constrain(
+    player.position.y - height / 2,
+    -50,
+    maxDepth - height + 50
+  );
+
+  let parallaxFactor = 0.3;    
+  let verticalParallax = 0.2;    
+
+  // Much more transparent + bluish
+  tint(120, 25);
+
+  for (let rock of farRockPlacements) {
+    let screenX =
+      (rock.x - cameraOffset) * parallaxFactor + width / 2;
+
+    let screenY =
+      height / 2 -
+      cameraOffsetY * verticalParallax +
+      500; 
+
+    let rockWidth = rock.img.width;
+
+    if (screenX > -1000 && screenX < width + 1000) {
+      image(rock.img, screenX, screenY, rockWidth, FAR_ROCK_HEIGHT);
+    }
+  }
+
+  pop();
+}
+
+
+//VEG
+function generateVegPlacements() {
+  vegPlacements = [];
+
+  for (let x = WORLD_START_X+900; x < WORLD_START_X + WORLD_WIDTH; x += VEG_SPACING) {
+    let img = random(vegImages);
+
+    vegPlacements.push({
+      x,
+      img,
+      swayOffset: random(TWO_PI), 
+      scale: random(0.8, 1.2)
+    });
+  }
+}
+
+function drawVegetationParallax() {
+  push();
+  imageMode(CENTER);
+  noStroke();
+
+  const PARALLAX_X = 0.8;  
+  const PARALLAX_Y = 0.7;  
+  const BASE_Y = height * VEG_BASE_DEPTH;
+
+  let cameraOffsetY = constrain(
+    player.position.y - height / 2,
+    0,
+    maxDepth - height
+  );
+
+  for (let veg of vegPlacements) {
+    let screenX =
+      (veg.x - cameraOffset) * PARALLAX_X + width / 2;
+
+    let screenY =
+      BASE_Y + 300 * PARALLAX_Y;
+
+    // subtle sway animation
+    let sway =
+      sin(frameCount * 0.02 + veg.swayOffset) * 10;
+
+    let w = veg.img.width * veg.scale;
+    let h = veg.img.height * veg.scale;
+
+    if (screenX > -w && screenX < width + w) {
+      tint(200, 220); 
+      image(veg.img, screenX + sway, screenY, w, h);
+    }
+  }
+
+  pop();
+}
+
+
+
 
 
 

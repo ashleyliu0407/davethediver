@@ -25,14 +25,11 @@ let gameOverAlpha = 0;
 
 //mbackground music
 let bgMusic;
-<<<<<<< HEAD
-=======
 let upgradeSound; // sound when purchasing upgrade
 let buySound; // sound when purchasing weapon
 let equipSound; // sound when equipping weapon
 let noMoneySound; // sound when not enough money
 
->>>>>>> 40ea0d571d6d441079d9ecd83662c7a0f3699402
 let boat;
 let boatImg; 
 let character;
@@ -41,6 +38,7 @@ let coinIcon;
 let diveButton;
 let restaurantButton; 
 let homeButton; 
+let inventoryButton;
 // let unloadButton; 
 
 let numDives = parseInt(sessionStorage.getItem("numDives")) || 0; // load from session or start at 0 
@@ -91,6 +89,10 @@ let upgradeIcons = {};
 
 let preDiveMenu;
 
+//inventory menu 
+let boatInventoryMenu;
+window.fishImages = {};
+
 
 function preload(){
 
@@ -125,6 +127,16 @@ function preload(){
     upgradeIcons["AirTank"] = loadImage("images/upgrade/AirTank.png");
     upgradeIcons["CargoBox"] = loadImage("images/upgrade/CargoBox.png");
 
+    fishImages["Mackerel"] = loadImage("images/fish/Mackerel_R.gif");
+    fishImages["Sardine"] = loadImage("images/fish/Sardine_R.gif");
+    fishImages["Bluefin-Tuna"] = loadImage("images/fish/Bluefin-Tuna_R.gif");
+    fishImages["Eel"] = loadImage("images/fish/Eel_R.gif");
+    fishImages["Salmon"] = loadImage("images/fish/Salmon_R.gif");
+    fishImages["Scallop"] = loadImage("images/fish/Scallop_R.gif");
+    fishImages["Sea-Urchin"] = loadImage("images/fish/Sea-Urchin_R.gif");
+    fishImages["Yellowtail"] = loadImage("images/fish/Yellowtail_R.gif");
+
+
 }
 
 function setup() {
@@ -143,6 +155,7 @@ function setup() {
   let allMenuIcons = {...weaponIcons, ...upgradeIcons};
   gearMenu = new GearMenu(allMenuIcons);
   preDiveMenu = new PreDiveMenu(allMenuIcons);
+  boatInventoryMenu = new BoatInventoryMenu();
   
 
   //parallax
@@ -194,10 +207,10 @@ function setup() {
   diveButton.mousePressed(() => {
     // prevent diving if gear menu is open
     if (gearMenu.isVisible) return;
-    if (numDives >= 2) {
+    if (numDives >= 3) {
       //Reached the maximum amount of dives for the day 
       //**could change this to a text box later */
-      alert("You've reached the maximum of 2 dives today! Visit the restaurant to end the day.");
+      alert("You've reached the maximum of 3 dives today! Visit the restaurant to end the day.");
       return; 
     }
 
@@ -210,29 +223,44 @@ function setup() {
   // Position button at the ladder
   updateDiveButtonPosition();
 
-  // //window.location.href = "dive.html";
-  // diveButton.mousePressed(() => {
-  // // navigate back to restaurant screen
-  //   window.location.href = "dive.html";
-  // });
-
   
   // create gear button
-  gearButton = createButton('EQUIP & UPGRADE');
+  gearButton = createButton('UPGRADE');
   // gearButton = createButton("DIVER'S GEAR");
-  gearButton.size(140, 50);
+  gearButton.size(100, 40);
   gearButton.style("font-size", "14px");
   gearButton.style("color", "#bddcfdff");
   gearButton.style("background-color", "#084387ff"); 
   gearButton.style("border-radius", "8px");
   gearButton.style("cursor", "pointer");
   gearButton.style("font-family", "Quantico, sans-serif");
-  gearButton.position(width/2 - 70, height/2 + 80); // below dive button
+  gearButton.position(width/2 - 70, height/2 + 80); 
+
   gearButton.mousePressed(() => {
     if (!fading && !showInstructions) {
       toggleGearMenu();
     }
   });
+
+  // INVENTORY BUTTON
+  inventoryButton = createButton('INVENTORY');
+  inventoryButton.size(100, 40);
+  inventoryButton.style("font-size", "14px");
+  inventoryButton.style("color", "#bddcfdff");
+  inventoryButton.style("background-color", "#084387ff");
+  inventoryButton.style("border-radius", "8px");
+  inventoryButton.style("cursor", "pointer");
+  inventoryButton.style("font-family", "Quantico, sans-serif");
+
+  // position 
+  inventoryButton.position(width/2 + 60, height/2 + 80);
+
+  inventoryButton.mousePressed(() => {
+    if (!fading && !showInstructions) {
+      boatInventoryMenu.toggle();
+    }
+  });
+
    
     // Create restuarant button
   restaurantButton = createButton('END DAY & GO TO THE RESTAURANT');
@@ -306,16 +334,18 @@ function refreshGameData() {
 
 // Update button visibility based on gear menu state
 function updateButtonVisibility() {
-  if (gearMenu.isVisible || preDiveMenu.isVisible) {
+  if (gearMenu.isVisible || preDiveMenu.isVisible || boatInventoryMenu.isVisible) {
     diveButton.hide();
     restaurantButton.hide();
     gearButton.hide();
+    inventoryButton.hide();
   } else {
     //ADD ARROWS HERE
     // drawTriangles(a1,b1,a2,b2,a3,b3)
     diveButton.show();
     restaurantButton.show();
     gearButton.show();
+    inventoryButton.show(); 
   }
 }
 
@@ -336,6 +366,10 @@ function draw() {
       homeButton.hide();
     }
 
+    //inventory display
+    if(boatInventoryMenu.isVisible){
+      boatInventoryMenu.display();
+    }
 
     // draw gear menu if visible
     if (gearMenu.isVisible) {
@@ -353,6 +387,7 @@ function draw() {
       restaurantButton.hide();
       gearButton.hide();
       diveButton.hide();
+      inventoryButton.hide();
     }else{
       updateButtonVisibility();
     }
@@ -397,7 +432,7 @@ function draw() {
     textStyle(BOLD);
     text(
       "Hey there Dave - ready to fish?\n\n" +
-      "Dive up to TWO times per day\nand your catches will automatically save after every \ndive.\n\n" +
+      "Dive up to THREE times per day\nand your catches will automatically save after every \ndive.\n\n" +
       "Upgrade and equip your tools to catch more fish\n" +
       "Visit the restaurant once you’re done diving!\n",
       width/2-350, height/2+20
@@ -442,7 +477,7 @@ function updateDiveButtonPosition() {
 function updateRestaurantButtonPosition() {
   // Position restaurant button at bottom center
   let restaurantButtonX = width / 2 - 400; 
-  let restaurantButtonY = height / 2; 
+  let restaurantButtonY = height / 2 + 80; 
   restaurantButton.style("left", restaurantButtonX + "px");
   restaurantButton.style("top", restaurantButtonY + "px");
 }
@@ -455,18 +490,34 @@ function updateGearButtonPosition() {
   gearButton.style("top", gearButtonY + "px");
 }
 
+//DIVING PREP
+function updateInventoryButton() {
+  let inventButtonX = width/2 + 60;
+  let inventButtonY = height/2 + 80; 
+  inventoryButton.style("left", inventButtonX + "px");
+  inventoryButton.style("top", inventButtonY + "px");
+}
+
+
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
   updateDiveButtonPosition(); 
   updateRestaurantButtonPosition();
   updateGearButtonPosition(); 
+  updateInventoryButton();
 }
 
 function mousePressed(){
   if (showInstructions) {
     showInstructions = false; 
     return;
+  }
+
+  if (boatInventoryMenu.isVisible) {
+    let handled = boatInventoryMenu.handleClick(mouseX, mouseY);
+    updateButtonVisibility();
+    if (handled) return;
   }
 
   if (gearMenu.isVisible) {
