@@ -225,7 +225,7 @@ function setup() {
 
   
   // create gear button
-  gearButton = createButton('UPGRADE');
+  gearButton = createButton('SHOP');
   // gearButton = createButton("DIVER'S GEAR");
   gearButton.size(100, 40);
   gearButton.style("font-size", "14px");
